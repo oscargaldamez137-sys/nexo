@@ -29,7 +29,7 @@ internal class AndroidAppUpdater(private val context: Context) {
     private fun installed(): PackageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     val currentVersion: String get() = installed().versionName ?: "0.0.0"
 
-    suspend fun check(): AppUpdate? = AppUpdates.check(currentVersion) {
+    suspend fun check(enabled: Boolean = true, manual: Boolean = false): AppUpdate? = AppUpdates.checkIfEnabled(enabled, manual, currentVersion) {
         withTimeoutOrNull(20_000) { withContext(Dispatchers.IO) { release(OfficialHttp.bytes(AppUpdates.RELEASE_URL, OfficialHttp.apkHosts, 2 * 1024 * 1024)) } }
             ?: throw IOException("GitHub no respondió a tiempo.")
     }
@@ -99,7 +99,7 @@ internal class AndroidAppUpdater(private val context: Context) {
 
     /** Enlaces fijos que Nexo abre en el navegador (donar y página de descargas). */
     fun open(activity: Activity, url: String): LaunchResult {
-        require(url == DONATE_URL || url == AppUpdates.RELEASES_PAGE) { "Enlace no permitido." }
+        require(url == DONATE_URL || url == AppUpdates.RELEASES_PAGE || url == AppUpdates.REPO_PAGE) { "Enlace no permitido." }
         return try { activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE)); LaunchResult.Started }
         catch (_: ActivityNotFoundException) { LaunchResult.Failed("No hay un navegador para abrir $url") }
     }

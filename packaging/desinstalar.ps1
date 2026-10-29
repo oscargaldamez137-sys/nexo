@@ -16,8 +16,19 @@ function Safe-InstalledPath([string]$Relative) {
 
 try {
     $removeData = $false
+    # Carpetas de juegos/emuladores elegidas en Opciones fuera de la instalación: solo se mencionan, nunca se tocan.
+    # (Todo lo que este script borra o recicla pasa por Safe-InstalledPath, que rechaza cualquier ruta fuera de la instalación.)
+    $externalNote = ''
+    try {
+        $settingsPath = Join-Path $installRoot 'nexo.json'
+        if (Test-Path -LiteralPath $settingsPath -PathType Leaf) {
+            $settings = [IO.File]::ReadAllText($settingsPath, [Text.Encoding]::UTF8) | ConvertFrom-Json
+            $external = @(@($settings.gamesRoot, $settings.emulatorsRoot) | Where-Object { $_ -is [string] -and $_ })
+            if ($external.Count -gt 0) { $externalNote = "`r`n`r`nSe conservan siempre, elijas lo que elijas, tus carpetas elegidas fuera de la instalación:`r`n" + ($external -join "`r`n") }
+        }
+    } catch { $externalNote = '' }
     if (-not $NonInteractive) {
-        $answer = [Windows.Forms.MessageBox]::Show("¿Quieres enviar también TODOS tus emuladores, juegos y ajustes a la Papelera?`r`n`r`nSí: desinstala el programa y envía esos datos a la Papelera.`r`nNo: desinstala el programa y CONSERVA tus datos.`r`nCancelar: no hace cambios.", 'Desinstalar Nexo', 'YesNoCancel', 'Warning', 'Button2')
+        $answer = [Windows.Forms.MessageBox]::Show("¿Quieres enviar también los emuladores, juegos y ajustes de la carpeta de Nexo a la Papelera?`r`n`r`nSí: desinstala el programa y envía esos datos a la Papelera.`r`nNo: desinstala el programa y CONSERVA tus datos.`r`nCancelar: no hace cambios." + $externalNote, 'Desinstalar Nexo', 'YesNoCancel', 'Warning', 'Button2')
         if ($answer -eq 'Cancel') { exit 0 }
         $removeData = $answer -eq 'Yes'
     }

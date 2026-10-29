@@ -66,7 +66,7 @@ internal class AndroidArtwork(private val context: Context, private val library:
             if (cover == null && runCatching { cached.exists() && cached.length() <= 16 * 1024 * 1024 && valid(cached.readBytes(), false) }.getOrDefault(false)) cover = Uri.fromFile(cached).toString()
             val negative = File(folder, "$key.negative")
             val until = runCatching { negative.readText().toLong() }.getOrDefault(0)
-            if (cover == null && prefs.getBoolean("downloadArtwork", true) && System.currentTimeMillis() >= until) {
+            if (ArtworkPolicy.shouldDownload(prefs.getBoolean(NexoSettings.DOWNLOAD_ARTWORK, true), cover != null, System.currentTimeMillis(), until)) {
                 var permanent = true
                 for (url in ArtworkSources.covers(game.systemId, game.fileName, serial, disc)) {
                     try {

@@ -75,7 +75,7 @@
 
       <!-- ================= Barra superior ================= -->
       <Grid Grid.Row="0" Margin="40,20,28,0" x:Name="TopBar" Background="Transparent">
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel x:Name="TopLeft" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
           <Path Data="M9,23 V9 L23,23 V9" Width="30" Height="30" Stretch="Uniform" StrokeThickness="3.4"
                 StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                 Stroke="{DynamicResource Brush.Accent}" Margin="0,0,12,0">
@@ -85,7 +85,7 @@
           <TextBlock Text="Tus consolas y tus juegos, en un solo lugar" FontSize="14" Margin="14,4,0,0"
                      Foreground="{StaticResource Brush.InkFaint}" VerticalAlignment="Center" x:Name="Tagline"/>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+        <StackPanel x:Name="TopRight" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
           <!-- Actualización automática: progreso de la descarga y cuenta atrás (B o Esc la deja para el cierre). -->
           <Button x:Name="UpdateChip" Visibility="Collapsed" Style="{StaticResource Button.Glass}" Padding="14,7" Margin="0,0,12,0"
                   BorderBrush="{DynamicResource Brush.Accent}" ToolTip="Actualización de Nexo">
@@ -93,6 +93,27 @@
               <Path Width="16" Height="16" Stretch="Uniform" Stroke="{DynamicResource Brush.Accent}" StrokeThickness="1.9" Margin="0,0,8,0"
                     StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Data="M12,4 V15 M7,10 L12,15 L17,10 M5,20 H19"/>
               <TextBlock x:Name="UpdateText" FontSize="13" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+          <!-- Carpetas: dónde viven los juegos y los emuladores (tecla C; con mando, desde Opciones). -->
+          <Button x:Name="FoldersButton" Style="{StaticResource Button.Glass}" Padding="14,7" Margin="0,0,12,0"
+                  ToolTip="Carpetas de juegos y emuladores (C)">
+            <StackPanel Orientation="Horizontal">
+              <Path Width="15" Height="15" Stretch="Uniform" Stroke="{StaticResource Brush.InkSoft}" StrokeThickness="1.9" StrokeLineJoin="Round" Margin="0,0,7,0"
+                    VerticalAlignment="Center" Data="M3,7 A2,2 0 0 1 5,5 H9 L11,7 H19 A2,2 0 0 1 21,9 V17 A2,2 0 0 1 19,19 H5 A2,2 0 0 1 3,17 Z"/>
+              <TextBlock Text="Carpetas" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource Brush.InkSoft}" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+          <!-- Opciones: engranaje; tecla O, con mando Start. -->
+          <Button x:Name="OptionsButton" Style="{StaticResource Button.Glass}" Padding="14,7" Margin="0,0,12,0" ToolTip="Opciones (O)">
+            <StackPanel Orientation="Horizontal">
+              <Path Width="16" Height="16" Stretch="Uniform" Stroke="{StaticResource Brush.InkSoft}" StrokeThickness="1.7" StrokeLineJoin="Round" Margin="0,0,7,0"
+                    VerticalAlignment="Center"
+                    Data="M10.3,2.5 H13.7 L14.3,5.2 A7.2,7.2 0 0 1 16.2,6.3 L18.8,5.4 L20.5,8.4 L18.4,10.2 A7.2,7.2 0 0 1 18.4,13.8 L20.5,15.6 L18.8,18.6 L16.2,17.7 A7.2,7.2 0 0 1 14.3,18.8 L13.7,21.5 H10.3 L9.7,18.8 A7.2,7.2 0 0 1 7.8,17.7 L5.2,18.6 L3.5,15.6 L5.6,13.8 A7.2,7.2 0 0 1 5.6,10.2 L3.5,8.4 L5.2,5.4 L7.8,6.3 A7.2,7.2 0 0 1 9.7,5.2 Z M12,9 A3,3 0 1 0 12.01,9 Z"/>
+              <TextBlock Text="Opciones" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource Brush.InkSoft}" VerticalAlignment="Center"/>
+              <Border x:Name="OptionsKey" Style="{StaticResource Kbd}" Margin="8,0,0,0" Visibility="Collapsed">
+                <TextBlock Text="Start" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Brush.InkSoft}"/>
+              </Border>
             </StackPanel>
           </Button>
           <!-- Donar: discreto, abre Ko-fi en el navegador. Con mando, botón View (Back). -->
@@ -248,6 +269,31 @@
         <StackPanel x:Name="Dots" Orientation="Horizontal" HorizontalAlignment="Center"/>
         <StackPanel x:Name="Hints" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0" TextElement.FontSize="13"/>
       </StackPanel>
+    </Grid>
+
+    <!-- ================= Opciones y carpetas (panel con mando: ▲▼ elegir, A cambiar, B volver) ================= -->
+    <Grid x:Name="Overlay" Visibility="Collapsed" Background="#C705060A">
+      <Border x:Name="OverlayCard" HorizontalAlignment="Center" VerticalAlignment="Center" Width="780" Margin="24"
+              CornerRadius="26" Background="#F50E101A" BorderBrush="{StaticResource Brush.Line}" BorderThickness="1" Padding="30,24,30,20">
+        <Border.Effect><DropShadowEffect BlurRadius="60" ShadowDepth="16" Direction="270" Opacity="0.7"/></Border.Effect>
+        <Border.RenderTransform><TranslateTransform x:Name="OverlayMove"/></Border.RenderTransform>
+        <DockPanel>
+          <Grid DockPanel.Dock="Top" Margin="2,0,0,16">
+            <StackPanel Margin="0,0,56,0">
+              <TextBlock x:Name="OverlayKicker" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Accent}"/>
+              <TextBlock x:Name="OverlayTitle" FontSize="30" FontWeight="ExtraBold" Margin="0,2,0,0"/>
+              <TextBlock x:Name="OverlaySubtitle" FontSize="14" TextWrapping="Wrap" Foreground="{StaticResource Brush.InkSoft}" Margin="0,6,0,0" LineHeight="21"/>
+            </StackPanel>
+            <Button x:Name="OverlayClose" Style="{StaticResource Button.Round}" HorizontalAlignment="Right" VerticalAlignment="Top" ToolTip="Cerrar (Esc o B)">
+              <Path Data="M6,6 L18,18 M18,6 L6,18" Width="14" Height="14" Stretch="Uniform" Stroke="{StaticResource Brush.Ink}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+            </Button>
+          </Grid>
+          <StackPanel x:Name="OverlayHints" DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,14,0,0" TextElement.FontSize="13"/>
+          <ScrollViewer x:Name="OverlayScroll" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" Focusable="False" PanningMode="VerticalOnly">
+            <StackPanel x:Name="OverlayRows"/>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
     </Grid>
 
     <!-- ================= Avisos ================= -->

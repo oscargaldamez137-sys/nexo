@@ -362,6 +362,7 @@ internal static class Program
         Ps4CompatibilityTests.RunAll(Run, workspace);
         NewSystemsTests.RunAll(Run, workspace);
         UpdateTests.RunAll(Run, workspace);
+        FoldersOptionsTests.RunAll(Run, workspace);
         Console.WriteLine("Resultado: " + passed + " correctas, " + failed + " fallidas.");
         return failed == 0 ? 0 : 1;
     }

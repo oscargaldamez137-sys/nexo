@@ -4,7 +4,7 @@ plugins {
 }
 
 // Súbela junto con <Version> de src/Nexo/Nexo.csproj antes de publicar la versión vX.Y.Z.
-val nexoVersion = "1.0.0"
+val nexoVersion = "1.1.0"
 
 android {
     namespace = "com.nexo.launcher"
@@ -85,6 +85,7 @@ tasks.withType<Test>().configureEach {
         dependsOn("archiveTest")
         dependsOn("systemFilesTest")
         dependsOn("appUpdateTest")
+        dependsOn("libraryTest")
         failOnNoDiscoveredTests.set(false)
     }
 }
@@ -121,4 +122,16 @@ tasks.register<JavaExec>("appUpdateTest") {
         configurations.named("debugUnitTestRuntimeClasspath")
     )
     mainClass.set("com.nexo.launcher.core.AppUpdateChecks")
+}
+
+tasks.register<JavaExec>("libraryTest") {
+    group = "verification"
+    description = "Opciones, carpeta de la biblioteca y juegos de Switch sin claves visibles; sin red ni Android."
+    dependsOn("compileDebugKotlin", "compileDebugUnitTestKotlin")
+    classpath = files(
+        tasks.named("compileDebugKotlin").map { it.outputs.files },
+        tasks.named("compileDebugUnitTestKotlin").map { it.outputs.files },
+        configurations.named("debugUnitTestRuntimeClasspath")
+    )
+    mainClass.set("com.nexo.launcher.core.LibraryChecks")
 }

@@ -24,6 +24,12 @@ internal class AndroidNexoCore(private val context: Context) : NexoCore {
     private val archives = AndroidArchives(context, library)
     private val systemFiles = AndroidSystemFiles(context, library)
     override val libraryRoot: Uri? get() = library.root
+    override val settings = NexoSettings(object : SettingsStore {
+        private val prefs = context.getSharedPreferences("nexo", Context.MODE_PRIVATE)
+        override fun getBoolean(key: String, default: Boolean) = prefs.getBoolean(key, default)
+        override fun putBoolean(key: String, value: Boolean) = prefs.edit().putBoolean(key, value).commit()
+    })
+    override val appVersion: String get() = updater.currentVersion
     override fun setLibraryRoot(tree: Uri) { library.setRoot(tree); systemFiles.clearStatuses() }
 
     @Suppress("DEPRECATION")
@@ -49,7 +55,10 @@ internal class AndroidNexoCore(private val context: Context) : NexoCore {
         val retroNotes = if (systemId in listOf("GBC", "GBA") && app != null && Emulators.isRetro(app.packageName)) Emulators.profile("Retro")!!.notes else emptyList()
         return EmulatorStatus(systemId, if (app == null) EmulatorState.NotInstalled else EmulatorState.Installed,
             if (systemId in listOf("GBC", "GBA")) Emulators.label(systemId, app?.packageName) else system.emulatorName,
-            app?.packageName, profile.notes + coreHint + fallbackNotes + retroNotes + systemFiles.note(systemId))
+            app?.packageName, (profile.notes + coreHint + fallbackNotes + retroNotes + systemFiles.note(systemId)).let {
+                // «No volver a mostrar» el aviso de claves de Switch: el estado queda limpio; los juegos nunca dependieron de él.
+                if (systemId == "Switch") SwitchNotice.visibleNotes(it, settings.hideSwitchKeysNotice) else it
+            })
     }
 
     override suspend fun scan(systemId: String): ScanResult = withContext(Dispatchers.IO) {
@@ -129,9 +138,10 @@ internal class AndroidNexoCore(private val context: Context) : NexoCore {
     } catch (e: Exception) { LaunchResult.Failed(e.message ?: "No se pudo abrir el emulador.") }
 
     override fun installEmulator(activity: Activity, systemId: String) = installer.install(activity, systemId)
-    override suspend fun checkAppUpdate() = updater.check()
+    override suspend fun checkAppUpdate(manual: Boolean) = updater.check(settings.checkUpdates, manual)
     override suspend fun downloadAppUpdate(update: AppUpdate, onProgress: (Float) -> Unit) = updater.download(update, onProgress)
     override suspend fun installAppUpdate(activity: Activity, apk: File) = updater.install(activity, apk)
     override fun canInstallApps() = updater.canInstall()
     override fun openDonate(activity: Activity) = updater.open(activity, AndroidAppUpdater.DONATE_URL)
+    override fun openRepository(activity: Activity) = updater.open(activity, AppUpdates.REPO_PAGE)
 }

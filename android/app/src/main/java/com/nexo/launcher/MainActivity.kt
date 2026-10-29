@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.nexo.launcher.ui.NexoApp
 import com.nexo.launcher.ui.NexoViewModel
+import com.nexo.launcher.ui.OptionItem
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -37,7 +38,7 @@ class MainActivity : ComponentActivity(), InputManager.InputDeviceListener {
         KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_BUTTON_A,
         KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START,
         KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_ESCAPE,
-        KeyEvent.KEYCODE_BUTTON_Y, KeyEvent.KEYCODE_BUTTON_X, KeyEvent.KEYCODE_BUTTON_SELECT)
+        KeyEvent.KEYCODE_BUTTON_Y, KeyEvent.KEYCODE_BUTTON_X, KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_MENU)
 
     // El instalador del sistema termina cuando Nexo ya volvió al frente: se escucha el aviso de app instalada.
     private val packages = object : BroadcastReceiver() {
@@ -67,6 +68,12 @@ class MainActivity : ComponentActivity(), InputManager.InputDeviceListener {
         if (tree != null) vm.setLibrary(tree)
     }
 
+    // El selector empieza en la biblioteca actual al cambiarla desde la barra superior u Opciones.
+    private fun pickLibrary() {
+        try { pickLibrary.launch(vm.libraryRoot) }
+        catch (e: Exception) { vm.show("No pude abrir el selector de carpetas: ${e.message}", error = true) }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         immersive()
@@ -78,7 +85,7 @@ class MainActivity : ComponentActivity(), InputManager.InputDeviceListener {
             addDataScheme("package")
         })
         setContent {
-            NexoApp(vm, padConnected.value, onPickLibrary = { pickLibrary.launch(null) }, onEdenGrant = { requestEdenGrant() })
+            NexoApp(vm, padConnected.value, onPickLibrary = { pickLibrary() }, onEdenGrant = { requestEdenGrant() })
         }
     }
 
@@ -128,6 +135,21 @@ class MainActivity : ComponentActivity(), InputManager.InputDeviceListener {
             if (event.repeatCount == 0) when (keyCode) {
                 KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> vm.openGuideEmulator(this)
                 KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE -> vm.closeGuide()
+                KeyEvent.KEYCODE_BUTTON_Y -> if (it.keysNotice) vm.hideSwitchKeysNotice()
+            }
+            return true
+        }
+        // Opciones: ▲▼ elegir, Ⓐ cambiar, ◀▶ también cambian los interruptores, Ⓑ/Start/Menú cierran.
+        if (vm.optionsOpen) {
+            if (event.repeatCount == 0 || keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_UP -> vm.moveOption(-1)
+                KeyEvent.KEYCODE_DPAD_DOWN -> vm.moveOption(1)
+                KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> vm.activateOption(vm.options[vm.optionIndex], this) { pickLibrary() }
+                KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                    val item = vm.options[vm.optionIndex]
+                    if (item == OptionItem.Artwork || item == OptionItem.AutoUpdate || item == OptionItem.SwitchNotice) vm.activateOption(item, this) { pickLibrary() }
+                }
+                KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU -> vm.closeOptions()
             }
             return true
         }
@@ -145,9 +167,11 @@ class MainActivity : ComponentActivity(), InputManager.InputDeviceListener {
             KeyEvent.KEYCODE_DPAD_RIGHT -> { right(); true }
             KeyEvent.KEYCODE_DPAD_DOWN -> { vm.enterGames(); true }
             KeyEvent.KEYCODE_DPAD_UP -> { vm.exitGames(); true }
-            KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START -> {
+            KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
                 if (event.repeatCount == 0) vm.primary(this); true
             }
+            // Start (o Menú) abre Opciones; Ⓐ sigue siendo la acción principal.
+            KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_MENU -> { if (event.repeatCount == 0) vm.openOptions(); true }
             KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE -> { if (vm.gamesMode) vm.exitGames(); true }
             KeyEvent.KEYCODE_BUTTON_X -> { if (!vm.gamesMode && event.repeatCount == 0) vm.systemFiles { requestEdenGrant() }; true }
             KeyEvent.KEYCODE_BUTTON_L1 -> { vm.step(-1); true }
@@ -194,8 +218,11 @@ class MainActivity : ComponentActivity(), InputManager.InputDeviceListener {
             }
             val vertical = when { y > 0.7f -> 1; y < -0.7f -> -1; else -> 0 }
             if (vertical != verticalHeld) {
-                if (vertical > 0) vm.enterGames()
-                if (vertical < 0) vm.exitGames()
+                if (vm.optionsOpen) { if (vertical != 0) vm.moveOption(vertical) }
+                else {
+                    if (vertical > 0) vm.enterGames()
+                    if (vertical < 0) vm.exitGames()
+                }
                 verticalHeld = vertical
             }
             return true
@@ -203,8 +230,8 @@ class MainActivity : ComponentActivity(), InputManager.InputDeviceListener {
         return super.dispatchGenericMotionEvent(event)
     }
 
-    private fun left() { if (vm.gamesMode) vm.stepGame(-1) else vm.step(-1) }
-    private fun right() { if (vm.gamesMode) vm.stepGame(1) else vm.step(1) }
+    private fun left() { if (vm.optionsOpen || vm.guide != null || vm.pendingDelete != null) return; if (vm.gamesMode) vm.stepGame(-1) else vm.step(-1) }
+    private fun right() { if (vm.optionsOpen || vm.guide != null || vm.pendingDelete != null) return; if (vm.gamesMode) vm.stepGame(1) else vm.step(1) }
 
     private fun hasGamepad() = InputDevice.getDeviceIds().any { id ->
         val sources = InputDevice.getDevice(id)?.sources ?: 0

@@ -1,6 +1,6 @@
 # Nexo
 
-Una aplicación nativa de Windows para reunir tus consolas, emuladores y juegos. No usa servidor, navegador ni puertos locales. Su biblioteca y configuración viven dentro de la carpeta de instalación.
+Una aplicación nativa de Windows para reunir tus consolas, emuladores y juegos. No usa servidor, navegador ni puertos locales. Su biblioteca y configuración viven por defecto dentro de la carpeta de instalación; los juegos y los emuladores pueden ir a otra carpeta (ver *Carpetas y Opciones*).
 
 ## Instalar y abrir
 
@@ -14,6 +14,30 @@ Nexo se distribuye solo con este instalador. En el primer arranque crea las carp
 
 El botón **☕ Donar** de la barra superior (con mando, **View**) abre <https://ko-fi.com/nova5emu> en el navegador.
 
+## Carpetas y Opciones
+
+**Carpetas** (barra superior o tecla **C**) muestra dónde están los juegos y los emuladores. **Cambiar** abre el selector de carpetas de Windows; la carpeta elegida es la raíz y Nexo crea dentro `PS2`, `Switch`, etc., con su LEEME breve, y vuelve a escanear la biblioteca. Por ejemplo, con `D:\MisJuegos` los juegos de PS2 van en `D:\MisJuegos\PS2`. Se guarda en `nexo.json` como `"gamesRoot"` y `"emulatorsRoot"` (rutas absolutas); sin esas claves se usan `Juegos` y `Emuladores` de la instalación, como siempre.
+
+- Nexo **no mueve ni borra** nada al cambiar de carpeta. Si en la anterior había juegos, lo dice y ofrece **Abrir la carpeta anterior** para que los muevas tú. **Restablecer la predeterminada** vuelve a la carpeta de la instalación.
+- Se rechazan: la raíz de una unidad (`D:\`), rutas relativas o de red, unidades de CD/DVD, carpetas dentro de la instalación o que la contengan, carpetas de Windows, rutas con enlaces o junctions (incluidas carpetas sincronizadas que lo sean), carpetas sin permiso de escritura, y que juegos y emuladores coincidan o estén una dentro de la otra.
+- Todo sigue funcionando en la carpeta elegida: escaneo, portadas en caché (`<carpeta>\<consola>\covers`), descompresión de ZIP/7z/RAR e ISO de PS3 (el temporal `.nexo-extract-…` se crea en la misma carpeta de la consola, en el mismo disco), instalación de PKG de PS4, caché de compatibilidad, instalación de emuladores, BIOS/firmware y lanzamiento.
+- Si la carpeta elegida no está disponible al abrir Nexo (un disco externo desconectado), Nexo abre igual, avisa y no crea nada en otro sitio; conéctala o restablece la predeterminada.
+- El instalador y la actualización automática conservan `nexo.json` y nunca escriben en las carpetas externas. El desinstalador tampoco las toca: «Sí» solo envía a la Papelera `Emuladores`, `Juegos` y `nexo.json` de la carpeta de instalación, y la pregunta recuerda qué carpetas externas se conservan.
+
+**Opciones** (engranaje, tecla **O**, con mando **Start**). Con el mando: ▲▼ elegir, **A** cambiar (◀▶ también cambian los interruptores) y **B** cerrar. Todo está activado por defecto, como en 1.0.0; cada opción se guarda en `nexo.json` solo si la desactivas (así un `nexo.json` con valores de fábrica sigue siendo legible por 1.0.0):
+
+| Opción | Clave en `nexo.json` | Qué hace al desactivarla |
+| --- | --- | --- |
+| Carpetas de juegos y emuladores | `gamesRoot`, `emulatorsRoot` | Abre el panel de Carpetas. |
+| Descargar portadas y fondos en línea | `downloadArtwork` | No consulta GameTDB, libretro ni ps2-covers: solo arte local y caché ya descargada. |
+| Abrir juegos a pantalla completa | `fullscreenGames` | Lanza con las mismas plantillas sin las opciones de pantalla completa (`-f`, `-fullscreen`, `--fullscreen`, `-full-screen`, `--fullscreen true`, `-C Dolphin.Display.Fullscreen=True`); cada emulador usa su propio ajuste. Los `gameArguments` personalizados siempre mandan. |
+| Gráficos automáticos | `autoGraphics` | Al abrir un emulador o juego no cambia su configuración gráfica. |
+| Configurar mandos automáticamente | `autoControllers` | Al abrir no toca los controles ni crea el modo portable (la instalación desde Nexo sigue creándolo). |
+| Sonidos de la interfaz | `sounds` | Silencia los efectos. La tecla **M** cambia lo mismo y también se recuerda. |
+| Buscar actualizaciones al abrir | `checkUpdates` | Nexo no consulta GitHub al abrirse. **Buscar actualizaciones ahora** consulta igualmente cuando lo pidas. |
+
+También muestra la versión de Nexo con enlace a <https://github.com/oscargaldamez137-sys/nexo> y el botón Donar. Solo para pruebas, `Nexo.exe --nexo-captura=inicio|opciones|carpetas` abre una ventana detrás de las demás, sin activarla, con ese panel abierto y sin consultar actualizaciones, y se cierra sola a los 30 s.
+
 ## Tus emuladores y juegos
 
 Copia cada emulador **completo**, con sus DLL, recursos y subcarpetas, en `Emuladores\<Id>`, o utiliza la instalación oficial disponible en Core para conectar al botón de la interfaz. Coloca tus juegos en `Juegos\<Id>`. El instalador pequeño de Nexo contiene el lanzador y sus imágenes; las descargas de emuladores son operaciones separadas que inicia el usuario. La instalación automática incluye los núcleos oficiales de RetroArch. No incluye juegos, BIOS, firmware ni claves.
@@ -26,7 +50,7 @@ Copia cada emulador **completo**, con sus DLL, recursos y subcarpetas, en `Emula
 - **GameCube/Wii / Dolphin:** tus juegos y configurar el mando de GameCube o el Wiimote emulado/real. Los contenidos que requieren una NAND o instalación en el sistema Wii se preparan dentro de Dolphin; Nexo no aporta esos datos.
 - **PS4 / shadPS4:** juegos extraídos y los módulos del sistema que requiera su versión/juego, obtenidos de tu consola siguiendo la [guía oficial](https://github.com/shadps4-emu/shadPS4/wiki/I.-Quick-start-%5BUsers%5D). Nexo no incluye módulos, claves ni juegos. La build SDL instalada usa Big Picture al pulsar «Abrir emulador».
 - **Retro / RetroArch:** la instalación automática descarga RetroArch y sus núcleos. Una instalación existente se conserva sin reinstalar; si le faltan núcleos, añádelos desde RetroArch. Algunos sistemas/núcleos necesitan BIOS o firmware adicional en el directorio `system`; esos archivos no vienen con Nexo.
-- **Switch / Eden:** importa `prod.keys`, opcionalmente `title.keys`, y el ZIP de firmware de tu consola. Se guardan bajo `user\keys` y `user\nand\system\Contents\registered`. Después elige el mando una vez en Eden. Nexo no descarga claves ni firmware de Switch.
+- **Switch / Eden:** importa `prod.keys`, opcionalmente `title.keys`, y el ZIP de firmware de tu consola. Se guardan bajo `user\keys` y `user\nand\system\Contents\registered`. Después elige el mando una vez en Eden. Nexo no descarga claves ni firmware de Switch. Si Eden (o yuzu/Citron) no está en modo portable, Nexo también reconoce las claves y el firmware de `%APPDATA%\eden` (`yuzu`, `citron`); para Ryujinx, `portable` o `%APPDATA%\Ryujinx`. Que Nexo no vea las claves es solo un aviso: los juegos se listan y se abren igual. Un NSP/XCI aparece como aviso únicamente si su estructura está incompleta (por ejemplo, una descarga cortada) o comprimida (NSZ/XCZ).
 - **PS5 / Nova5:** Nexo instala la última versión de Nova5 desde su publicación oficial y abre los juegos con sus ajustes. Soporte experimental: que un juego aparezca no garantiza que funcione.
 - **GBC / GBA / mGBA:** copia tus ROMs en la carpeta de cada portátil. Comparten una instalación de mGBA; la BIOS de GBA es opcional y no se solicita.
 - **Xbox / xemu:** importa MCPX `.bin` de 512 bytes y una BIOS flash `.bin` compatible con xemu de 256/512 KiB o 1 MiB. La descarga de xemu incluye el disco duro inicial oficial con el dashboard libre del proyecto; también puedes importar tu `.qcow2` autónomo. Una BIOS retail sin modificar no sirve: consulta los [archivos requeridos por xemu](https://xemu.app/docs/required-files/). Nexo comprueba estructura/tamaño, no puede certificar una BIOS por su tamaño.
@@ -199,7 +223,7 @@ Switch no tiene fuente de carátulas en línea en Nexo: usa las imágenes que el
 
 Para el arte de Switch, Nexo no descifra NCA de control ni lee `prod.keys`, claves de título o licencias: el icono incrustado está cifrado y no se extrae.
 
-Para desactivar toda consulta de arte por Internet, añade **`"downloadArtwork": false`** en la raíz de `nexo.json`, conservando `version` y `systems`. Por defecto es true. El arte local, el ISO de PSP y la caché ya descargada siguen disponibles sin red. Solo se envía a los proveedores el identificador o el nombre del juego: no se suben juegos, rutas locales, firmware ni claves.
+Para desactivar toda consulta de arte por Internet, usa **Opciones › Descargar portadas y fondos en línea** (o añade **`"downloadArtwork": false`** en la raíz de `nexo.json`, conservando `version` y `systems`). Por defecto es true. El arte local, el ISO de PSP y la caché ya descargada siguen disponibles sin red. Solo se envía a los proveedores el identificador o el nombre del juego: no se suben juegos, rutas locales, firmware ni claves.
 
 Las descargas usan HTTPS con dominios concretos, sin cookies ni credenciales; solo admiten hasta tres redirecciones al mismo host. Límite de 8 MiB por imagen, 8192 píxeles por lado y 32 megapíxeles, comprobación PNG/JPEG y decodificación antes de publicar mediante archivo temporal. Timeout de 12 segundos por solicitud y hasta tres transferencias simultáneas. Un 404 se recuerda siete días; los fallos transitorios, treinta minutos, en `covers\…\.nexo-art`. Eliminar esos archivos `.miss` fuerza reintentar. Cancelar no guarda un fallo. No se siguen junctions para guardar imágenes.
 
@@ -242,7 +266,7 @@ Las fotos se presentan escaladas en el carrusel de Nexo. La copia de PS5 y las a
 
 ## Mando y navegación
 
-Nexo admite mandos compatibles con XInput. La cruceta y el stick izquierdo devuelven direcciones; A/B/X/Y, LB/RB, Start y Back devuelven pulsaciones individuales. Mantener una dirección repite tras 380 ms y luego cada 140 ms. Se aplica una zona muerta al stick y se restablece el estado al desconectar el mando. Se usa `xinput1_4.dll` con alternativa `xinput9_1_0.dll`, sin descargar controladores.
+Nexo admite mandos compatibles con XInput. La cruceta y el stick izquierdo devuelven direcciones; A/B/X/Y, LB/RB, Start y Back devuelven pulsaciones individuales. **Start** abre Opciones (desde 1.1.0; antes repetía A) y **Back/View** abre Donar. Mantener una dirección repite tras 380 ms y luego cada 140 ms. Se aplica una zona muerta al stick y se restablece el estado al desconectar el mando. Se usa `xinput1_4.dll` con alternativa `xinput9_1_0.dll`, sin descargar controladores.
 
 La interfaz permite elegir consola con arrastre, rueda, teclado y mando; bajar a la estantería de juegos y volver a las consolas. Los controles concretos se muestran en pantalla.
 
@@ -323,7 +347,7 @@ La detección de emuladores recorre hasta cuatro niveles de subcarpetas, 10 000 
 3. Cuando Nexo no está descomprimiendo, instalando un emulador ni importando archivos, no está minimizado y no hay un juego lanzado desde Nexo en primer plano, empieza una cuenta atrás de 8 segundos. **B** en el mando o **Esc** la dejan para cuando cierres Nexo; pulsar el aviso instala en el momento.
 4. Nexo se cierra y `instalar.ps1 -Destination <esta carpeta> -NonInteractive -NoShortcuts -WaitSeconds 60` espera a que termine de cerrarse, sustituye el programa sin ventanas, conserva `Emuladores`, `Juegos` y `nexo.json` y vuelve a abrir Nexo.
 
-Si la carpeta no permite escribir, si esta copia no se instaló con el instalador (no tiene `nexo-installed-files.txt`) o si el intento anterior no llegó a instalar la versión nueva, Nexo no lo reintenta en bucle: muestra un aviso que abre la página de descargas. El motivo de un fallo queda en `%TEMP%\Nexo-Update\error.txt` y la versión anterior se vuelve a abrir. No hay pantalla de ajustes, así que la comprobación no se puede desactivar.
+Si la carpeta no permite escribir, si esta copia no se instaló con el instalador (no tiene `nexo-installed-files.txt`) o si el intento anterior no llegó a instalar la versión nueva, Nexo no lo reintenta en bucle: muestra un aviso que abre la página de descargas. El motivo de un fallo queda en `%TEMP%\Nexo-Update\error.txt` y la versión anterior se vuelve a abrir. La comprobación al abrir se desactiva en **Opciones › Buscar actualizaciones al abrir**; **Buscar actualizaciones ahora** la lanza a mano.
 
 También puedes actualizar a mano: ejecuta el instalador y elige la misma carpeta. Cierra Nexo antes. Se reemplazan los archivos del programa y se conservan emuladores, juegos, portadas y `nexo.json`. Los LEEME existentes tampoco se sobrescriben.
 

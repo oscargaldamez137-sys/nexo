@@ -16,7 +16,8 @@ Autor: **Oscar Galdámez**. Web del proyecto: <https://nova5emu.github.io/nova5/
 - **Preparación del emulador** (Windows): perfil gráfico según la GPU y la pantalla, configuración del mando y arranque a pantalla completa, sin tocar los ajustes personales que ya existan.
 - **Archivos del sistema del usuario**: ayuda a importar en el emulador la BIOS, el firmware o las claves que el usuario haya obtenido de su propia consola, con validación básica y copia de seguridad de lo sustituido.
 - **Instalación de PKG fake/de desarrollo de PS4** para shadPS4 (Windows).
-- **Todo en su carpeta**: en Windows, la biblioteca y la configuración viven dentro de la carpeta de instalación. Sin servidor, navegador ni puertos locales.
+- **Todo en su carpeta**: en Windows, la biblioteca y la configuración viven por defecto dentro de la carpeta de instalación; desde **Carpetas** puedes llevar los juegos y los emuladores a otro disco. Sin servidor, navegador ni puertos locales.
+- **Opciones** (engranaje de la barra superior): actualizaciones, portadas en línea, sonidos, gráficos y mandos automáticos, pantalla completa y versión.
 - **Actualización automática** desde las versiones publicadas en GitHub, en Windows y Android (ver más abajo).
 
 ## Consolas soportadas
@@ -48,7 +49,7 @@ Requiere Windows 10/11 con **.NET Framework 4.8**.
 2. Elige una carpeta (por defecto `C:\Nexo`).
 3. Abre **Nexo** desde el Escritorio o el menú Inicio.
 
-Nexo se distribuye solo con este instalador. Dentro de la carpeta elegida crea `Emuladores\<consola>` y `Juegos\<consola>`; ahí viven también la configuración y las portadas. Las versiones nuevas se instalan solas (ver *Actualizaciones automáticas*); si lo prefieres, ejecutar de nuevo el instalador sobre la misma carpeta también actualiza y conserva emuladores, juegos, portadas y configuración.
+Nexo se distribuye solo con este instalador. Dentro de la carpeta elegida crea `Emuladores\<consola>` y `Juegos\<consola>`; ahí viven también la configuración y las portadas (puedes mover juegos y emuladores a otra carpeta desde **Carpetas**). Las versiones nuevas se instalan solas (ver *Actualizaciones automáticas*); si lo prefieres, ejecutar de nuevo el instalador sobre la misma carpeta también actualiza y conserva emuladores, juegos, portadas y configuración.
 
 ### Android
 
@@ -58,9 +59,17 @@ Requiere Android 8.0 o superior (la mayoría de emuladores necesitan un disposit
 2. Instálalo permitiendo "Instalar apps desconocidas" para el navegador o el gestor de archivos.
 3. Al abrir Nexo, elige la carpeta de tu biblioteca; Nexo crea dentro `Juegos/<consola>` y `BIOS/<consola>`.
 
+## Carpetas y Opciones
+
+En la barra superior, junto a **Donar**, están **Carpetas** y **Opciones** (engranaje). Con teclado: **C** y **O**; con mando, **Start** abre Opciones (en Windows y Android) y desde ahí se llega a Carpetas. Dentro: ▲▼ para elegir, **A/Enter** para cambiar y **B/Esc** para volver.
+
+- **Carpetas (Windows)**: elige la carpeta raíz de los juegos y la de los emuladores. Nexo crea dentro una subcarpeta por consola (`PS2`, `Switch`…) con su LEEME y vuelve a escanear. No mueve ni borra nada: lo que había en la carpeta anterior se queda allí (puedes abrirla desde el mismo panel y moverlo tú). **Restablecer** vuelve a `Juegos` / `Emuladores` dentro de la instalación. Se rechazan la raíz de una unidad, rutas de red, carpetas dentro de la instalación o que la contengan, carpetas de Windows, enlaces/junctions, carpetas sin permiso de escritura y que juegos y emuladores coincidan o estén una dentro de la otra. Si un disco externo elegido no está conectado, Nexo abre igual y lo avisa.
+- **Carpeta (Android)**: el mismo selector del primer arranque, para cambiar la biblioteca cuando quieras; vuelve a escanear y no toca la anterior. Si eliges directamente tu carpeta de juegos (llamada `Juegos` o que ya tiene carpetas como `Switch`), Nexo la usa tal cual en vez de crear otra `Juegos` dentro.
+- **Opciones (Windows)**: descargar portadas y fondos en línea, abrir juegos a pantalla completa, gráficos automáticos, configurar mandos automáticamente, sonidos de la interfaz, buscar actualizaciones al abrir y ahora, versión con enlace al repositorio y Donar. **Android**: carpeta, portadas en línea, actualizaciones al abrir y ahora, aviso de claves de Switch, versión y Donar. Por defecto todo está activado, como en 1.0.0. En Windows se guardan en `nexo.json`; en Android, en los ajustes privados de la app.
+
 ## Actualizaciones automáticas
 
-Nexo consulta al abrirse la última versión publicada en <https://github.com/oscargaldamez137-sys/nexo/releases>. Sin conexión, o si GitHub no responde en unos segundos, sigue funcionando sin avisar. La comprobación no se puede desactivar porque Nexo no tiene pantalla de ajustes.
+Nexo consulta al abrirse la última versión publicada en <https://github.com/oscargaldamez137-sys/nexo/releases>. Sin conexión, o si GitHub no responde en unos segundos, sigue funcionando sin avisar. Se puede desactivar en **Opciones › Buscar actualizaciones al abrir** (entonces Nexo no se conecta para esto) y lanzar a mano con **Buscar actualizaciones ahora**.
 
 - **Windows**: si hay una versión nueva, un aviso en la barra superior muestra la descarga de `Instalar-Nexo.exe` con su porcentaje. Nexo comprueba el tamaño y la huella SHA-256 que publica GitHub y, cuando no estás descomprimiendo, instalando ni jugando, cuenta 8 segundos y se actualiza solo: se cierra, el instalador sustituye el programa en la misma carpeta sin mostrar ventanas, conserva `Emuladores`, `Juegos` y `nexo.json` y vuelve a abrir Nexo. Durante la cuenta atrás, **B** en el mando o **Esc** lo dejan para cuando cierres Nexo. Si la carpeta no permite escribir, o si una instalación automática falló, Nexo lo avisa y el aviso abre la página de descargas.
 - **Android**: Nexo descarga `Nexo.apk` con su progreso en la barra superior, comprueba tamaño, SHA-256, paquete y versión, y abre el instalador del sistema. Android siempre pide confirmar; si falta el permiso «Instalar apps desconocidas» para Nexo, te lleva a ese ajuste y la actualización sigue al volver. Si cancelas, el aviso (o **Y** en el mando) la vuelve a abrir. El APK nuevo debe estar firmado con la misma clave que el instalado.

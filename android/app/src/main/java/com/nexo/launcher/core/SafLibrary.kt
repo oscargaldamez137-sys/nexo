@@ -28,7 +28,12 @@ internal class SafLibrary(private val context: Context) {
         require(tree.scheme == "content" && Docs.isTreeUri(tree)) { "Elige una carpeta mediante el selector de Android." }
         try { resolver.takePersistableUriPermission(tree, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION) }
         catch (e: SecurityException) { throw IllegalStateException("Android no concedió acceso permanente de lectura y escritura. Vuelve a elegir una carpeta local para Nexo.", e) }
+        val previous = root
         check(prefs.edit().putString("library", tree.toString()).commit()) { "No se pudo guardar la biblioteca." }
+        // Cambio de carpeta: se suelta el permiso de la anterior (no se toca ni se borra nada en ella).
+        if (previous != null && previous != tree) runCatching {
+            resolver.releasePersistableUriPermission(previous, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        }
         // Persist first, initialize on Dispatchers.IO during scan, never 12 provider queries on the UI thread.
         locations.clear(); archiveLocations.clear(); initialized = null
     }
@@ -75,10 +80,10 @@ internal class SafLibrary(private val context: Context) {
         val chosen = root ?: throw IOException("Primero elige la carpeta de tu biblioteca.")
         initLock.lock()
         try {
-            val games = directory(document(chosen), "Juegos")
+            val games = gamesFolder(chosen)
             if (initialized != chosen.toString()) {
                 val bios = directory(document(chosen), "BIOS")
-                val existing = children(games).associateBy { it.name }
+                val existing = children(games).map { it.name to it.directory }
                 for (system in Catalog.systems) {
                     currentCoroutineContext().ensureActive()
                     val biosFolder = directory(bios, system.id)
@@ -87,8 +92,7 @@ internal class SafLibrary(private val context: Context) {
                         resolver.openOutputStream(readme, "wt")?.use { it.write((system.name + "\n\n" + SystemFilesLogic.readme(system.id) + "\n").toByteArray()) }
                             ?: throw IOException("No se pudo escribir el LEEME de BIOS.")
                     }
-                    val folder = existing[system.id]?.also { check(it.directory) { "${system.id} no es una carpeta." } }?.uri
-                        ?: directory(games, system.id)
+                    val folder = directory(games, LibraryLayout.systemFolder(system.id, existing) ?: system.id)
                     if (children(folder).none { it.name.equals("LEEME.txt", true) }) {
                         val readme = Docs.createDocument(resolver, folder, "text/plain", "LEEME.txt")
                             ?: throw IOException("No se pudo crear LEEME.txt.")
@@ -100,8 +104,15 @@ internal class SafLibrary(private val context: Context) {
                 }
                 if (root == chosen) initialized = chosen.toString()
             }
-            return directory(games, id)
+            return directory(games, LibraryLayout.systemFolder(id, children(games).map { it.name to it.directory }) ?: id)
         } finally { initLock.unlock() }
+    }
+    /** «Juegos» dentro de la biblioteca o, si el usuario eligió su propia carpeta de juegos, esa misma (LibraryLayout). */
+    private suspend fun gamesFolder(chosen: Uri): Uri {
+        val rootDoc = document(chosen)
+        val entries = children(rootDoc).map { it.name to it.directory }
+        val name = runCatching { info(rootDoc).name }.getOrNull()
+        return if (LibraryLayout.useRootAsGames(name, entries, Catalog.systems.map { it.id })) rootDoc else directory(rootDoc, LibraryLayout.GAMES)
     }
     suspend fun biosFolder(id: String): Uri {
         val chosen = root ?: throw IOException("Primero elige la biblioteca.")
@@ -146,7 +157,12 @@ internal class SafLibrary(private val context: Context) {
                     continue
                 }
                 val ext = GameFormats.extension(entry.name)
-                if (ext in GameFormats.archives) {
+                val kind = ShelfRules.kind(id, entry.name, cueNames)
+                if (kind == ShelfRules.Kind.Unsupported) {
+                    // Nunca se esconde un juego en silencio: aparece como pendiente con la explicación.
+                    archives += PendingArchive(id, GameFormats.title(entry.name), entry.uri, entry.size, false, SwitchNotice.unsupported(id, entry.name)!!)
+                    archiveLocations[entry.uri.toString()] = GameLocation(entry, folder, base, id)
+                } else if (kind == ShelfRules.Kind.Archive) {
                     val job = currentCoroutineContext()
                     val health = try {
                         android.os.ParcelFileDescriptor.AutoCloseInputStream(resolver.openFileDescriptor(entry.uri, "r")
@@ -156,7 +172,7 @@ internal class SafLibrary(private val context: Context) {
                     } catch (e: IOException) { ArchiveHealth(false, "No se pudo comprobar la descarga: ${e.message}") }
                     archives += PendingArchive(id, GameFormats.title(entry.name), entry.uri, entry.size, health.ready, health.message)
                     archiveLocations[entry.uri.toString()] = GameLocation(entry, folder, base, id)
-                } else if (ext in GameFormats.extensions(id) && !(ext == "bin" && GameFormats.stem(entry.name).lowercase() in cueNames)) {
+                } else if (kind == ShelfRules.Kind.Game) {
                     val platform = if (id == "GameCube-Wii") runCatching { SeekDocument(context, entry.uri).use { BinaryMetadata.disc(it, ext)?.platform } }.getOrNull() else null
                     games += Game(id, GameFormats.title(entry.name), entry.uri, entry.name, entry.size, platform = platform)
                     locations[entry.uri.toString()] = GameLocation(entry, folder, base, id)

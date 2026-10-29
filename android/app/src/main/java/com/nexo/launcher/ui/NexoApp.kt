@@ -13,6 +13,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -75,7 +78,8 @@ import kotlin.math.floor
 @Composable
 fun NexoApp(vm: NexoViewModel, padConnected: Boolean, onPickLibrary: () -> Unit, onEdenGrant: () -> Unit) {
     val activity = LocalContext.current as Activity
-    BackHandler(enabled = vm.gamesMode) { vm.exitGames() }
+    BackHandler(enabled = vm.gamesMode && !vm.optionsOpen) { vm.exitGames() }
+    BackHandler(enabled = vm.optionsOpen) { vm.closeOptions() }
     BoxWithConstraints(Modifier.fillMaxSize().background(Ink.Background)) {
         // Unidad de diseño: la pantalla de referencia es un móvil horizontal de 360 dp de alto.
         val unit = minOf(maxHeight.value / 360f, maxWidth.value / 640f).coerceIn(0.5f, 2.2f).dp
@@ -85,7 +89,7 @@ fun NexoApp(vm: NexoViewModel, padConnected: Boolean, onPickLibrary: () -> Unit,
 
         if (vm.libraryRoot == null) LibraryPrompt(unit, onPickLibrary)
         else Column(Modifier.fillMaxSize()) {
-            TopBar(vm, activity, padConnected, unit)
+            TopBar(vm, activity, padConnected, unit, onPickLibrary)
             // El carrusel se recoge al entrar en la estantería, como en PC.
             Box(Modifier.fillMaxWidth().height(unit * (128f - 100f * focus)).zIndex(-1f)) {
                 Carousel(vm, unit, focus)
@@ -100,6 +104,7 @@ fun NexoApp(vm: NexoViewModel, padConnected: Boolean, onPickLibrary: () -> Unit,
 
         vm.pendingDelete?.let { DeletePrompt(vm, it, unit) }
         vm.guide?.let { GuideDialog(vm, it, activity, unit) }
+        if (vm.optionsOpen && vm.libraryRoot != null) OptionsPanel(vm, activity, padConnected, unit, onPickLibrary)
         ToastHost(vm, unit)
     }
 }
@@ -140,7 +145,7 @@ private fun Backdrop(vm: NexoViewModel, focus: Float) {
 // ---------------------------------------------------------------------------- Barra superior
 
 @Composable
-private fun TopBar(vm: NexoViewModel, activity: Activity, padConnected: Boolean, u: Dp) {
+private fun TopBar(vm: NexoViewModel, activity: Activity, padConnected: Boolean, u: Dp, onPickLibrary: () -> Unit) {
     val clock by produceState(now()) { while (true) { delay(15_000); value = now() } }
     Row(Modifier.fillMaxWidth().padding(horizontal = u * 20, vertical = u * 8), verticalAlignment = Alignment.CenterVertically) {
         Text("N", color = color(vm.current.accent), fontSize = (u.value * 20).sp, fontWeight = FontWeight.Black)
@@ -159,6 +164,11 @@ private fun TopBar(vm: NexoViewModel, activity: Activity, padConnected: Boolean,
             Chip(text, u, accent = color(vm.current.accent), onClick = if (up.ready) ({ vm.installUpdate(activity) }) else null)
             Spacer(Modifier.width(u * 8))
         }
+        // Carpeta de la biblioteca (el mismo selector del primer arranque) y Opciones (con mando, Start).
+        Chip("📁 Carpeta", u, onClick = onPickLibrary)
+        Spacer(Modifier.width(u * 8))
+        Chip("⚙ Opciones" + if (padConnected) " · Start" else "", u, onClick = { vm.openOptions() })
+        Spacer(Modifier.width(u * 8))
         // Donar: discreto; con mando, el botón Select.
         Chip("☕ Donar" + if (padConnected) " · Select" else "", u, onClick = { vm.donate(activity) })
         Spacer(Modifier.width(u * 8))
@@ -426,7 +436,7 @@ private fun Hints(vm: NexoViewModel, padConnected: Boolean, u: Dp) {
         !padConnected && vm.gamesMode -> "Desliza para elegir · toca el juego seleccionado para jugar"
         !padConnected -> "Desliza para cambiar de consola · toca la consola para ver sus juegos"
         vm.gamesMode -> "◀ ▶ elegir juego   Ⓐ jugar   Ⓑ volver   LB RB cambiar consola"
-        else -> "◀ ▶ consola   ▼ ver juegos   Ⓐ abrir   Ⓧ BIOS"
+        else -> "◀ ▶ consola   ▼ ver juegos   Ⓐ abrir   Ⓧ BIOS   Start opciones"
     }
     Text(text, color = Ink.InkMuted, fontSize = (u.value * 8).sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = u * 6))
 }
@@ -468,6 +478,12 @@ private fun GuideDialog(vm: NexoViewModel, guide: NexoViewModel.Guide, activity:
             Row(horizontalArrangement = Arrangement.spacedBy(u * 10), modifier = Modifier.align(Alignment.End)) {
                 Box(Modifier.clip(RoundedCornerShape(u * 10)).background(Color.White.alpha(0.08f)).clickable { vm.closeGuide() }.padding(horizontal = u * 14, vertical = u * 7)) {
                     Text("Ⓑ Cerrar", color = Ink.InkSoft, fontSize = (u.value * 10.5f).sp, fontWeight = FontWeight.Bold)
+                }
+                // Aviso de claves de Switch que Nexo no puede ver: se puede ocultar para siempre (Opciones lo reactiva).
+                if (guide.keysNotice) {
+                    Box(Modifier.clip(RoundedCornerShape(u * 10)).background(Color.White.alpha(0.08f)).clickable { vm.hideSwitchKeysNotice() }.padding(horizontal = u * 14, vertical = u * 7)) {
+                        Text("Ⓨ No volver a mostrar", color = Ink.InkSoft, fontSize = (u.value * 10.5f).sp, fontWeight = FontWeight.Bold)
+                    }
                 }
                 if (guide.openEmulator != null) {
                     Box(Modifier.clip(RoundedCornerShape(u * 10)).background(color(vm.current.primary)).clickable { vm.openGuideEmulator(activity) }.padding(horizontal = u * 14, vertical = u * 7)) {
@@ -515,4 +531,84 @@ private fun ToastHost(vm: NexoViewModel, u: Dp) {
             }
         }
     }
+}
+
+// ---------------------------------------------------------------------------- Opciones
+
+/** Panel de Opciones: táctil y con mando (▲▼ elegir, Ⓐ cambiar, Ⓑ cerrar). */
+@Composable
+private fun OptionsPanel(vm: NexoViewModel, activity: Activity, padConnected: Boolean, u: Dp, onPickLibrary: () -> Unit) {
+    val accent = color(vm.current.accent)
+    val scroll = androidx.compose.foundation.rememberScrollState()
+    val positions = remember { mutableMapOf<Int, Int>() }
+    // Con mando, la fila elegida siempre queda a la vista.
+    LaunchedEffect(vm.optionIndex) { positions[vm.optionIndex]?.let { scroll.animateScrollTo((it - 60).coerceAtLeast(0)) } }
+    Box(Modifier.fillMaxSize().background(Ink.Background.alpha(0.82f)).clickable(remember { MutableInteractionSource() }, null) { vm.closeOptions() },
+        contentAlignment = Alignment.Center) {
+        Column(Modifier.widthIn(max = u * 560).fillMaxHeight(0.92f).clip(RoundedCornerShape(u * 16)).background(Ink.Panel)
+            .border(1.dp, Color.White.alpha(0.12f), RoundedCornerShape(u * 16))
+            .clickable(remember { MutableInteractionSource() }, null) { }.padding(u * 16)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("NEXO ${vm.appVersion}", color = accent, fontSize = (u.value * 8.5f).sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.6.sp)
+                    Text("Opciones", color = Ink.Ink, fontSize = (u.value * 18).sp, fontWeight = FontWeight.Black)
+                }
+                Box(Modifier.clip(RoundedCornerShape(50)).background(Color.White.alpha(0.08f)).clickable { vm.closeOptions() }.padding(horizontal = u * 10, vertical = u * 4)) {
+                    Text(if (padConnected) "Ⓑ Cerrar" else "✕ Cerrar", color = Ink.InkSoft, fontSize = (u.value * 9).sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Spacer(Modifier.height(u * 8))
+            Column(Modifier.weight(1f).verticalScroll(scroll)) {
+                vm.options.forEachIndexed { index, item ->
+                    val selected = index == vm.optionIndex
+                    val (title, detail, value) = when (item) {
+                        OptionItem.Library -> Triple("Carpeta de la biblioteca", libraryText(vm) +
+                            "\nNexo usa Juegos/<consola> dentro (o tu carpeta de juegos si ya tiene carpetas de consola). Cambiarla no mueve ni borra nada.", "Cambiar ›")
+                        OptionItem.Artwork -> Triple("Descargar portadas en línea",
+                            "Busca las que falten en GameTDB, libretro-thumbnails y ps2-covers. Desactivado, Nexo no se conecta para esto.", onOff(vm.downloadArtwork))
+                        OptionItem.AutoUpdate -> Triple("Buscar actualizaciones al abrir",
+                            "Consulta GitHub al abrir Nexo y descarga la versión nueva. Desactivado, Nexo no se conecta para esto.", onOff(vm.checkUpdates))
+                        OptionItem.UpdateNow -> Triple("Buscar actualizaciones ahora",
+                            if (vm.checkingUpdates) "Consultando GitHub…" else vm.update?.let { "Nexo ${it.version}: " + if (it.ready) "listo para instalar." else "descargando…" } ?: "Tienes la versión ${vm.appVersion}.",
+                            if (vm.checkingUpdates) "…" else "Buscar ›")
+                        OptionItem.SwitchNotice -> Triple("Aviso de claves de Switch",
+                            "Nexo no puede leer las claves guardadas dentro de Eden. El aviso nunca oculta ni bloquea juegos; ocúltalo si ya las configuraste en Eden.",
+                            if (vm.hideSwitchKeysNotice) "Oculto" else "Visible")
+                        OptionItem.About -> Triple("Nexo ${vm.appVersion}", "Código, novedades y versiones en github.com/oscargaldamez137-sys/nexo", "GitHub ›")
+                        OptionItem.Donate -> Triple("Donar", "Si Nexo te resulta útil, puedes apoyarlo en ko-fi.com/nova5emu.", "Ko-fi ›")
+                    }
+                    Row(Modifier.fillMaxWidth().padding(bottom = u * 4)
+                        .onGloballyPositioned { positions[index] = it.positionInParent().y.toInt() }
+                        .clip(RoundedCornerShape(u * 10))
+                        .background(if (selected) Color.White.alpha(0.09f) else Color.Transparent)
+                        .border(1.5.dp, if (selected) accent else Color.Transparent, RoundedCornerShape(u * 10))
+                        .clickable { vm.selectOption(index); vm.activateOption(item, activity, onPickLibrary) }
+                        .padding(horizontal = u * 12, vertical = u * 7), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(title, color = Ink.Ink, fontSize = (u.value * 11).sp, fontWeight = FontWeight.SemiBold)
+                            Text(detail, color = Ink.InkMuted, fontSize = (u.value * 8.5f).sp)
+                        }
+                        Spacer(Modifier.width(u * 10))
+                        val on = value == "Sí" || value == "Visible"
+                        Box(Modifier.clip(RoundedCornerShape(50)).background(if (on) accent.alpha(0.85f) else Color.White.alpha(0.08f)).padding(horizontal = u * 9, vertical = u * 3)) {
+                            Text(value, color = if (on) Ink.Background else Ink.InkSoft, fontSize = (u.value * 9).sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(u * 6))
+            Text(if (padConnected) "▲ ▼ elegir   Ⓐ cambiar   Ⓑ cerrar" else "Toca una opción para cambiarla", color = Ink.InkMuted,
+                fontSize = (u.value * 8).sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+private fun onOff(value: Boolean) = if (value) "Sí" else "No"
+
+private fun libraryText(vm: NexoViewModel): String {
+    val root = vm.libraryRoot ?: return "Sin elegir."
+    // content://…/tree/primary%3ANexo → «primary:Nexo» → «Memoria interna/Nexo».
+    val id = runCatching { android.provider.DocumentsContract.getTreeDocumentId(root) }.getOrNull() ?: return root.toString()
+    val (volume, path) = id.split(':', limit = 2).let { it[0] to it.getOrElse(1) { "" } }
+    return (if (volume == "primary") "Memoria interna" else "Tarjeta $volume") + "/" + path
 }

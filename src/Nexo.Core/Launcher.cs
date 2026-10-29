@@ -30,11 +30,12 @@ namespace Nexo.Core
         internal static string[] EmulatorArguments(string systemId) =>
             systemId == "PS4" ? new[] { "-b" } : new string[0];
 
-        internal static string[] GameArguments(string systemId, string executable, GameEntry game, string[] configured)
+        internal static string[] GameArguments(string systemId, string executable, GameEntry game, string[] configured, bool fullscreen = true)
         {
             string core = systemId == "Retro" ? RetroCores.Find(executable, game.Path) : null;
             if (systemId == "Retro" && core == null) throw new NexoException("No hay un núcleo compatible instalado en la carpeta cores de RetroArch.");
             string[] template = configured;
+            if (template == null && !fullscreen) template = WindowedTemplate(systemId, executable);
             if (template == null)
             {
                 switch (systemId)
@@ -68,6 +69,26 @@ namespace Nexo.Core
             var folder = Path.GetDirectoryName(game.Path);
             return template.Select(arg => arg.Replace("{game}", game.Path).Replace("{gameFolder}", folder)
                 .Replace("{core}", core ?? "")).ToArray();
+        }
+
+        // «Abrir juegos a pantalla completa» desactivado: las mismas plantillas sin las opciones de pantalla completa,
+        // así cada emulador usa su propio ajuste de ventana. Nova5 (--play) no recibe ninguna: se conserva igual.
+        private static string[] WindowedTemplate(string systemId, string executable)
+        {
+            string name = Path.GetFileName(executable ?? "");
+            switch (systemId)
+            {
+                case "GBC": case "GBA": case "Xbox360": case "PSP": return new[] { "{game}" };
+                case "Xbox": return new[] { "-dvd_path", "{game}" };
+                case "Retro": return new[] { "-L", "{core}", "{game}" };
+                case "PS2": return new[] { "--", "{game}" };
+                case "PS3": return new[] { "--no-gui", "{game}" };
+                case "GameCube-Wii": return new[] { "-b", "-e", "{game}" };
+                case "PS4": return new[] { "-g", "{game}" };
+                case "PS5": return string.Equals(name, "Nova5.exe", StringComparison.OrdinalIgnoreCase) ? new[] { "--play", "{game}" } : new[] { "--game", "{game}" };
+                case "Switch": return string.Equals(name, "Ryujinx.exe", StringComparison.OrdinalIgnoreCase) ? new[] { "{game}" } : new[] { "-g", "{game}" };
+                default: return null;
+            }
         }
 
         internal static ProcessStartInfo StartInfo(string executable, IEnumerable<string> arguments)

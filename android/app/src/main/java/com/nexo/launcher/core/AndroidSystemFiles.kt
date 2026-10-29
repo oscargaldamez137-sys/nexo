@@ -89,7 +89,8 @@ internal class AndroidSystemFiles(private val context: Context, private val libr
             val steps = listOf("Pon prod.keys, title.keys (opcional) y un único ZIP de firmware en $path.",
                 "Cierra Eden antes de importar. Concede su carpeta raíz una vez y pulsa instalar.",
                 "Reinicia Eden después. Nexo no descifra NCA ni puede deducir la versión del firmware o las claves por el nombre del ZIP.")
-            if (missing != null) return SystemSetupStatus(id, SystemSetupMode.MissingFiles, folder, "$missing Ponlas en $path.", steps)
+            // Android no deja a Nexo leer los datos privados de Eden: no ver las claves es un aviso, nunca un bloqueo.
+            if (missing != null) return SystemSetupStatus(id, SystemSetupMode.MissingFiles, folder, SwitchNotice.keys(false, false, path)!!, steps)
             return SystemSetupStatus(id, if (tree == null) SystemSetupMode.NeedsEdenGrant else SystemSetupMode.Automatic, folder,
                 if (tree == null) "Concede acceso a la carpeta raíz de Eden para importar los archivos de $path."
                 else "Archivos listos para copiar a Eden.${if (names.none { it.endsWith(".zip", true) }) " No hay ZIP de firmware en $path; se copiarán solo las claves." else ""}", steps)

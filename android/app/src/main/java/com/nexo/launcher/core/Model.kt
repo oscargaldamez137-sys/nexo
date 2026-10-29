@@ -135,8 +135,11 @@ interface NexoCore {
     /** Lleva a la instalación oficial del emulador (Play Store o descarga oficial + instalador del sistema). */
     fun installEmulator(activity: Activity, systemId: String): LaunchResult
 
-    /** Versión nueva de Nexo publicada en GitHub con Nexo.apk; null sin red, sin versión nueva o ante cualquier error. */
-    suspend fun checkAppUpdate(): AppUpdate?
+    /**
+     * Versión nueva de Nexo publicada en GitHub con Nexo.apk; null sin red, sin versión nueva o ante cualquier error.
+     * Automática (manual = false): sin ninguna petición si «Buscar actualizaciones al abrir» está desactivada.
+     */
+    suspend fun checkAppUpdate(manual: Boolean = false): AppUpdate?
 
     /** Descarga y verifica (tamaño, SHA-256, paquete y versión) el APK de la actualización. onProgress de 0 a 1. */
     suspend fun downloadAppUpdate(update: AppUpdate, onProgress: (Float) -> Unit): java.io.File
@@ -149,4 +152,13 @@ interface NexoCore {
 
     /** Abre en el navegador la página de donación de Ko-fi. */
     fun openDonate(activity: Activity): LaunchResult
+
+    /** Opciones guardadas (actualizaciones al abrir, portadas en línea, aviso de claves de Switch). */
+    val settings: NexoSettings
+
+    /** Versión instalada de Nexo («1.1.0»). */
+    val appVersion: String
+
+    /** Abre en el navegador el repositorio de Nexo en GitHub. */
+    fun openRepository(activity: Activity): LaunchResult
 }

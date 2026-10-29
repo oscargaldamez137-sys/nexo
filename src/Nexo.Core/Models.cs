@@ -113,6 +113,19 @@ namespace Nexo.Core
         { Games = games; IgnoredCount = ignoredCount; Reason = reason; Archives = archives ?? Array.Empty<ArchiveEntry>(); }
     }
 
+    /// <summary>Resultado de cambiar una carpeta raíz. Nexo nunca mueve ni borra lo que había en la anterior.</summary>
+    public sealed class FolderChangeResult
+    {
+        public bool Changed { get; }
+        public string PreviousFolder { get; }
+        public string Folder { get; }
+        /// <summary>La carpeta anterior contiene archivos del usuario (además de los LEEME de Nexo).</summary>
+        public bool PreviousHasContent { get; }
+        public string Message { get; }
+        public FolderChangeResult(bool changed, string previousFolder, string folder, bool previousHasContent, string message)
+        { Changed = changed; PreviousFolder = previousFolder; Folder = folder; PreviousHasContent = previousHasContent; Message = message; }
+    }
+
     public sealed class NexoException : Exception
     {
         public NexoException(string message) : base(message) { }

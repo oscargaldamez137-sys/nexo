@@ -18,6 +18,7 @@ internal object AppUpdates {
     const val REPO = "oscargaldamez137-sys/nexo"
     const val RELEASE_URL = "https://api.github.com/repos/$REPO/releases/latest"
     const val RELEASES_PAGE = "https://github.com/$REPO/releases/latest"
+    const val REPO_PAGE = "https://github.com/$REPO"
     const val ASSET = "Nexo.apk"
     private const val DOWNLOAD_PREFIX = "https://github.com/$REPO/releases/download/"
     const val MAX_APK = 256L * 1024 * 1024
@@ -57,6 +58,13 @@ internal object AppUpdates {
         try { select(fetch(), currentVersion) }
         catch (e: kotlinx.coroutines.CancellationException) { throw e }
         catch (_: Exception) { null }
+
+    /**
+     * Comprobación al abrir (automática) o desde Opciones (manual). Con la opción desactivada, la automática
+     * no llama a fetch: Nexo no se conecta. La manual consulta siempre.
+     */
+    suspend fun checkIfEnabled(enabled: Boolean, manual: Boolean, currentVersion: String, fetch: suspend () -> ReleaseInfo): AppUpdate? =
+        if (!manual && !enabled) null else check(currentVersion, fetch)
 
     /** Tamaño exacto y, si GitHub la publica, huella SHA-256. */
     fun verify(file: File, size: Long, sha256: String?, check: () -> Unit = {}) {

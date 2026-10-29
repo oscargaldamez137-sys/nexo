@@ -159,3 +159,10 @@ La compilación y las pruebas JVM no sustituyen una prueba en el teléfono de SA
 - [Dolphin 2609a: ClipData y URI de inicio](https://github.com/dolphin-emu/dolphin/blob/2609a/Source/Android/app/src/main/java/org/dolphinemu/dolphinemu/utils/StartupHandler.kt) y [JSON de descarga](https://dolphin-emu.org/update/latest/beta/).
 - [Eden 0.2.1: manifest del espejo oficial](https://github.com/eden-emulator/mirror/blob/v0.2.1/src/android/app/src/main/AndroidManifest.xml).
 - Los identificadores de aPS3e, aX360e y X1 BOX y el endpoint Forgejo proceden de un informe de investigación interno, no incluido en el repositorio. No se afirma una comprobación de instalación real de esos APK.
+
+## Opciones, carpeta y Switch (1.1.0)
+
+- `NexoCore.settings` (`NexoSettings`) guarda en las preferencias `nexo`: `checkUpdates` (comprobación al abrir; `checkAppUpdate(manual = false)` no hace ninguna petición si está desactivada), `downloadArtwork` (la misma clave que ya leía `AndroidArtwork`) y `hideSwitchKeysNotice`. Todo por defecto como en 1.0.0.
+- `setLibraryRoot` puede llamarse otra vez desde la barra superior u Opciones: guarda la nueva carpeta, suelta el permiso persistente de la anterior sin tocar su contenido y la interfaz vuelve a escanear.
+- `LibraryLayout`: los juegos van en `Juegos/<Id>`; si la biblioteca no tiene `Juegos` y la carpeta elegida se llama `Juegos` o ya contiene carpetas de consola (`Switch`, `Nintendo Switch`, `NSW`…), se usa esa carpeta directamente.
+- `ShelfRules.kind` decide qué es cada archivo solo por su nombre: ni claves, ni firmware, ni tamaño ocultan juegos. NSZ/XCZ aparecen como pendientes con su explicación. Como Android no deja leer los datos privados de Eden, no ver `prod.keys` es un aviso (`SwitchNotice`) que nunca bloquea el lanzamiento y se puede ocultar.

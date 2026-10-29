@@ -12,6 +12,36 @@ namespace Nexo.Core
 {
     internal static class SystemFiles
     {
+        // Las pruebas sustituyen %APPDATA% por una carpeta del área de pruebas.
+        internal static Func<string> AppDataFolder = () => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+        /// <summary>
+        /// Dónde lee cada emulador de Switch sus claves y su firmware. Eden, yuzu y Citron usan «user» junto al ejecutable
+        /// si existe (modo portable) y, si no, %APPDATA%\eden|yuzu|citron. Ryujinx usa «portable» o %APPDATA%\Ryujinx.
+        /// </summary>
+        internal static (string[] Keys, string[] Firmware) SwitchDataFolders(string executable, string appData)
+        {
+            string folder = Path.GetDirectoryName(executable);
+            string name = Path.GetFileNameWithoutExtension(executable).ToLowerInvariant();
+            if (name == "ryujinx")
+            {
+                string data = Directory.Exists(Path.Combine(folder, "portable")) ? Path.Combine(folder, "portable") : string.IsNullOrEmpty(appData) ? null : Path.Combine(appData, "Ryujinx");
+                return data == null ? (new string[0], new string[0])
+                    : (new[] { Path.Combine(data, "system", "prod.keys") }, new[] { Path.Combine(data, "bis", "system", "Contents", "registered") });
+            }
+            string user = Path.Combine(folder, "user");
+            if (!Directory.Exists(user) && !string.IsNullOrEmpty(appData))
+                user = Path.Combine(appData, name == "yuzu" || name == "citron" ? name : "eden");
+            return (new[] { Path.Combine(user, "keys", "prod.keys") }, new[] { Path.Combine(user, "nand", "system", "Contents", "registered") });
+        }
+
+        // Firmware instalado: NCA como archivos (Eden, yuzu, Citron) o como carpetas «*.nca» (Ryujinx).
+        private static bool HasFirmware(string registered)
+        {
+            try { return Directory.Exists(registered) && !SafePaths.HasReparsePoint(registered) && Directory.EnumerateFileSystemEntries(registered, "*.nca").Any(); }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException) { return false; }
+        }
+
         internal static IReadOnlyList<string> Inspect(SystemStatus status)
         {
             var messages = new List<string>();
@@ -39,8 +69,10 @@ namespace Nexo.Core
                             messages.Add("Falta instalar el firmware de PS3. Importa PS3UPDAT.PUP desde la web oficial de Sony.");
                         break;
                     case "Switch":
-                        if (!SafePaths.IsRegularFile(Path.Combine(folder, "user", "keys", "prod.keys"))) messages.Add("Faltan las prod.keys de tu consola Switch.");
-                        if (!FileTree.Files(Path.Combine(folder, "user", "nand", "system", "Contents", "registered"), 1, 2000, TimeSpan.FromMilliseconds(100), CancellationToken.None).Any(p => p.EndsWith(".nca", StringComparison.OrdinalIgnoreCase)))
+                        // Claves y firmware donde los lee el propio emulador: su carpeta portable o, si no la usa, su carpeta de usuario.
+                        var data = SwitchDataFolders(status.ExecutablePath, AppDataFolder());
+                        if (!data.Keys.Any(SafePaths.IsRegularFile)) messages.Add("Faltan las prod.keys de tu consola Switch.");
+                        if (!data.Firmware.Any(HasFirmware))
                             messages.Add("Falta importar el firmware de tu Switch.");
                         messages.Add("La presencia de claves y firmware no demuestra que sean compatibles. Eden debe poder leer SystemVersion.");
                         string diagnostic = EdenFirmwareStatus.Read(folder); if (diagnostic != null) messages.Add(diagnostic.Trim());

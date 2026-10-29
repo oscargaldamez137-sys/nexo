@@ -279,7 +279,8 @@ namespace Nexo.Core
     public static class NexoLinks
     {
         public const string Donate = "https://ko-fi.com/nova5emu";
-        private static readonly string[] Allowed = { Donate, AppUpdates.ReleasesPage };
+        public const string Repository = "https://github.com/" + AppUpdates.Repository;
+        private static readonly string[] Allowed = { Donate, AppUpdates.ReleasesPage, Repository };
 
         public static void Open(string url)
         {

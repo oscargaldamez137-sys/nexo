@@ -72,8 +72,22 @@ namespace Nexo
             _primary = new SolidColorBrush(Color.FromRgb(0x5B, 0x6C, 0xFF));
             Resources["Brush.Accent"] = _accent;
             Resources["Brush.Primary"] = _primary;
+            if (App.CaptureView != null)
+            {
+                // Captura de prueba: ventana normal, sin activarla ni ocupar la barra de tareas y detrás de todas las demás
+                // (fuera de la pantalla WPF no dibuja). PrintWindow la captura igualmente aunque esté tapada.
+                WindowState = WindowState.Normal;
+                WindowStartupLocation = WindowStartupLocation.Manual;
+                Left = 0; Top = 0; Width = 1440; Height = 900;
+                ShowActivated = false;
+                ShowInTaskbar = false;
+                SourceInitialized += (s, e) => SetWindowPos(new System.Windows.Interop.WindowInteropHelper(this).Handle, new IntPtr(1), 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010);
+            }
             Loaded += OnLoaded;
         }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
 
         // ================================================================ Arranque
 
@@ -86,11 +100,14 @@ namespace Nexo
             }
             catch (Exception error)
             {
-                MessageBox.Show("Nexo no pudo preparar sus carpetas:\n\n" + error.Message, "Nexo",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                if (App.CaptureView == null)
+                    MessageBox.Show("Nexo no pudo preparar sus carpetas:\n\n" + error.Message, "Nexo",
+                                    MessageBoxButton.OK, MessageBoxImage.Error);
                 Close();
                 return;
             }
+            // Sonidos: preferencia guardada (Opciones o tecla M). Un nexo.json ilegible ya habría fallado arriba.
+            try { _sounds.Muted = !_service.GetOption(NexoOption.Sounds); } catch (NexoException) { }
 
             SetupTheme();
             SetupParticles();
@@ -111,10 +128,23 @@ namespace Nexo
             AdaptToSize();
 
             _ = ShowGpuAsync();
-            _ = CheckUpdatesAsync();
+            if (App.CaptureView == null) _ = CheckUpdatesAsync(manual: false);
             CompositionTarget.Rendering += OnFrame;
             Layout(); // primera consola visible antes del primer fotograma
             Keyboard.Focus(this);
+            // Una carpeta elegida que no está (disco externo desconectado): se avisa sin impedir abrir Nexo.
+            if (_service.FolderWarning != null) ShowToast(_service.FolderWarning, error: true, seconds: 10);
+            if (App.CaptureView != null) StartCapture(App.CaptureView);
+        }
+
+        // Solo pruebas (--nexo-captura): abre el panel pedido y se cierra sola, para capturar con PrintWindow.
+        private void StartCapture(string view)
+        {
+            if (view == "opciones") OpenOverlay(OverlayPage.Options);
+            else if (view == "carpetas") OpenOverlay(OverlayPage.Folders);
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+            timer.Tick += (s, e) => { timer.Stop(); Close(); };
+            timer.Start();
         }
 
         private void WireEvents()
@@ -139,6 +169,11 @@ namespace Nexo
             SoundButton.Click += (s, e) => ToggleSound();
             UpdateChip.Click += (s, e) => UpdateChipAction();
             DonateButton.Click += (s, e) => OpenDonate();
+            FoldersButton.Click += (s, e) => OpenOverlay(OverlayPage.Folders);
+            OptionsButton.Click += (s, e) => OpenOverlay(OverlayPage.Options);
+            OverlayClose.Click += (s, e) => { _foldersFromOptions = false; CloseOverlay(); };
+            // Un clic fuera de la tarjeta cierra el panel.
+            Overlay.MouseLeftButtonUp += (s, e) => { if (ReferenceEquals(e.OriginalSource, Overlay)) { _foldersFromOptions = false; CloseOverlay(); } };
             MinimizeButton.Click += (s, e) => WindowState = WindowState.Minimized;
             CloseButton.Click += (s, e) => Close();
             TopBar.MouseLeftButtonDown += (s, e) => { if (WindowState == WindowState.Normal && e.ButtonState == MouseButtonState.Pressed) DragMove(); };
@@ -497,7 +532,7 @@ namespace Nexo
             PrimaryButton.IsEnabled = GamesFolderButton.IsEnabled = EmulatorFolderButton.IsEnabled = LocateButton.IsEnabled = known;
             if (installing) PrimaryButton.IsEnabled = false;
             StatusPath.Text = !known ? "" : installing ? progress : ready ? (pending.Count == 0 ? _status.ExecutablePath : pending[0])
-                : CanInstall(system) ? "Pulsa Instalar: Nexo lo descarga de su web oficial" : "Cópialo en  Emuladores\\" + system.Id;
+                : CanInstall(system) ? "Pulsa Instalar: Nexo lo descarga de su web oficial" : "Cópialo en  " + _status.EmulatorFolder;
             StatusPath.ToolTip = ready ? string.Join("\n", new[] { _status.ExecutablePath }.Concat(pending)) : _status?.EmulatorFolder;
             ImportButton.Visibility = ready && ImportLabel(system) != null ? Visibility.Visible : Visibility.Collapsed;
             ImportText.Text = ImportLabel(system) ?? "";
@@ -684,7 +719,7 @@ namespace Nexo
             if (_padConnected)
             {
                 if (_gamesMode) { Hint("elegir juego", "◀", "▶"); Hint("jugar", "A"); Hint("volver", "B"); Hint("cambiar consola", "LB", "RB"); }
-                else { Hint("cambiar consola", "◀", "▶"); Hint("ver juegos", "▼"); Hint("abrir", "A"); Hint("carpeta de juegos", "X"); }
+                else { Hint("cambiar consola", "◀", "▶"); Hint("ver juegos", "▼"); Hint("abrir", "A"); Hint("carpeta de juegos", "X"); Hint("opciones", "Start"); }
             }
             else if (_gamesMode)
             {
@@ -692,7 +727,7 @@ namespace Nexo
             }
             else
             {
-                Hint("o desliza para cambiar", "←", "→"); Hint("ver juegos", "↓"); Hint("abrir", "Enter"); Hint("carpeta de juegos", "F"); Hint("pantalla completa", "F11");
+                Hint("o desliza para cambiar", "←", "→"); Hint("ver juegos", "↓"); Hint("abrir", "Enter"); Hint("carpeta de juegos", "F"); Hint("opciones", "O"); Hint("pantalla completa", "F11");
             }
         }
 
@@ -906,7 +941,7 @@ namespace Nexo
             else
             {
                 ShelfEmptyTitle.Text = "Aún no hay juegos de " + system.Name;
-                ShelfEmptyText.Text = "Copia tus juegos en  Juegos\\" + system.Id + "  dentro de la carpeta de Nexo (botón «Carpeta de juegos» o tecla F). Aparecerán aquí solos."
+                ShelfEmptyText.Text = "Copia tus juegos en  " + (_status?.GamesFolder ?? System.IO.Path.Combine(_service.GamesRoot, system.Id)) + "  (botón «Carpeta de juegos» o tecla F). Aparecerán aquí solos."
                                       + (string.IsNullOrEmpty(system.GamesHint) ? "" : "\n" + system.GamesHint);
             }
             ShelfHint.Text = count == 0 || _gamesMode ? "" : ignored > 0
@@ -1280,7 +1315,10 @@ namespace Nexo
             }
             // Sin BIOS, firmware o claves el emulador solo mostraría un error confuso: se explica aquí.
             var missing = (_status.SetupMessages ?? new string[0]).FirstOrDefault(m => m.StartsWith("Falta", StringComparison.Ordinal));
-            if (missing != null && ImportLabel(system) != null)
+            // Switch: las claves pueden estar donde Nexo no mira (otra carpeta de Eden). Es un aviso, nunca un bloqueo.
+            string keysNotice = missing != null && system.Id == "Switch"
+                ? "\n⚠ " + missing + " Si ya configuraste las claves en " + EmulatorLabel + ", ignora este aviso." : "";
+            if (missing != null && ImportLabel(system) != null && system.Id != "Switch")
             {
                 _sounds.Error();
                 ShowToast(missing + " Sin eso " + EmulatorLabel + " no puede abrir juegos: vuelve a la consola (Esc o B) y pulsa «" + ImportLabel(system) + "».", error: true);
@@ -1292,7 +1330,7 @@ namespace Nexo
                 _launched.Add(_service.LaunchGame(game));
                 _sounds.Confirm();
                 (ViewAt(_gameActive) as MediaView)?.PlayLaunch();
-                ShowToast("¡A jugar! Abriendo " + game.Title + " en " + EmulatorLabel + "…" + SetupNotes());
+                ShowToast("¡A jugar! Abriendo " + game.Title + " en " + EmulatorLabel + "…" + keysNotice + SetupNotes(), seconds: keysNotice.Length > 0 ? 7 : 3.6);
             });
         }
 
@@ -1368,7 +1406,8 @@ namespace Nexo
                 GpuText.Text = "Gráficos " + gpu.Tier + "  ·  " + gpu.Name.Replace("NVIDIA GeForce ", "").Replace("AMD Radeon ", "Radeon ");
                 GpuChip.ToolTip = gpu.Name + " · " + Math.Round(gpu.VramBytes / 1073741824.0, 1) + " GB de VRAM. "
                                   + "Nexo ajusta cada emulador al máximo que esta tarjeta sostiene.";
-                GpuChip.Visibility = Visibility.Visible;
+                _gpuShown = true;
+                AdaptTopBar();
             }
             catch { /* sin datos de GPU: el chip no se muestra */ }
         }
@@ -1565,6 +1604,7 @@ namespace Nexo
             var key = e.Key == Key.System ? e.SystemKey : e.Key;
             // Durante la cuenta atrás de la actualización, Esc/Retroceso la dejan para cuando se cierre Nexo.
             if ((key == Key.Escape || key == Key.Back) && PostponeUpdate()) { e.Handled = true; return; }
+            if (OverlayOpen) { OverlayKey(key); e.Handled = true; return; }
             switch (key)
             {
                 case Key.Left: case Key.A: if (_gamesMode) StepGame(-1); else Step(-1); break;
@@ -1585,6 +1625,8 @@ namespace Nexo
                 case Key.F: OpenGamesFolder(); break;
                 case Key.E: LocateExecutable(); break;
                 case Key.M: ToggleSound(); break;
+                case Key.O: OpenOverlay(OverlayPage.Options); break;
+                case Key.C: OpenOverlay(OverlayPage.Folders); break;
                 case Key.F11: ToggleFullscreen(); break;
                 default: return;
             }
@@ -1602,12 +1644,21 @@ namespace Nexo
                 _padConnected = _pad.Connected;
                 PadChip.Visibility = _padConnected ? Visibility.Visible : Visibility.Collapsed;
                 DonateKey.Visibility = PadChip.Visibility;
+                OptionsKey.Visibility = PadChip.Visibility;
                 if (_padConnected) ShowToast("Mando conectado: muévete con la cruceta o el stick y pulsa A.");
                 UpdateHints();
+                if (OverlayOpen) UpdateOverlayHints();
+                AdaptTopBar();
             }
             if (presses == null || !IsActive || _clock.Elapsed.TotalMilliseconds < _padQuietUntil) return;
             foreach (var button in presses)
             {
+                if (OverlayOpen)
+                {
+                    if (button == PadButton.B && PostponeUpdate()) continue;
+                    OverlayPad(button);
+                    continue;
+                }
                 switch (button)
                 {
                     case PadButton.Left: if (_gamesMode) StepGame(-1); else Step(-1); break;
@@ -1618,7 +1669,9 @@ namespace Nexo
                     case PadButton.Back: OpenDonate(); break;
                     case PadButton.LB: Step(-1); break;
                     case PadButton.RB: Step(1); break;
-                    case PadButton.A: case PadButton.Start: PrimaryAction(); break;
+                    case PadButton.A: PrimaryAction(); break;
+                    // Start abre Opciones (A sigue siendo la acción principal).
+                    case PadButton.Start: OpenOverlay(OverlayPage.Options); break;
                     case PadButton.X: OpenGamesFolder(); break;
                     case PadButton.Y: OpenWebsite(); break;
                 }
@@ -1656,13 +1709,40 @@ namespace Nexo
         private readonly List<int> _launched = new List<int>();
         private static string InstallDir => AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
 
-        private async Task CheckUpdatesAsync()
+        // manual: «Buscar actualizaciones ahora» en Opciones. Automática: al abrir, salvo que esté desactivada en Opciones
+        // (entonces NexoService no hace ninguna petición).
+        private async Task CheckUpdatesAsync(bool manual)
         {
-            try { await Task.Delay(TimeSpan.FromSeconds(3), _closing.Token); }
+            if (manual)
+            {
+                if (_checkingUpdates) return;
+                if (_updateState != UpdateState.None) { ShowToast(UpdateStatusText()); return; }
+                _checkingUpdates = true;
+                if (_overlay == OverlayPage.Options) BuildOverlay();
+            }
+            AppUpdate update;
+            try
+            {
+                if (!manual) await Task.Delay(TimeSpan.FromSeconds(3), _closing.Token);
+                // Sin red, sin publicación o con GitHub caído: null y ningún aviso.
+                update = await _service.CheckForUpdateAsync(manual, _closing.Token);
+            }
             catch (OperationCanceledException) { return; }
-            // Sin red, sin publicación o con GitHub caído: null y ningún aviso.
-            var update = await AppUpdates.CheckAsync(AppUpdates.Current, _closing.Token);
-            if (update == null || _closing.IsCancellationRequested) return;
+            catch (Exception) { update = null; }
+            finally
+            {
+                if (manual)
+                {
+                    _checkingUpdates = false;
+                    if (_overlay == OverlayPage.Options) BuildOverlay();
+                }
+            }
+            if (_closing.IsCancellationRequested) return;
+            if (update == null)
+            {
+                if (manual) ShowToast("No hay una versión nueva: tienes Nexo " + AppUpdates.Current.ToString(3) + " (o no se pudo consultar GitHub).");
+                return;
+            }
             _update = update;
             string version = update.Version.ToString();
             if (!AppUpdates.IsInstalled(InstallDir))
@@ -1688,7 +1768,7 @@ namespace Nexo
             _updateState = UpdateState.Downloading;
             UpdateText.Text = "Descargando Nexo " + version + "…";
             UpdateChip.ToolTip = "Nexo " + version + " se descarga en segundo plano y se instalará solo.";
-            UpdateChip.Visibility = Visibility.Visible;
+            UpdateChip.Visibility = Visibility.Visible; AdaptTopBar();
             ShowToast("Hay una versión nueva de Nexo (" + version + "). Se descarga en segundo plano y se instalará sola; tus juegos, emuladores y ajustes se conservan.", seconds: 7);
             try
             {
@@ -1701,7 +1781,7 @@ namespace Nexo
             {
                 if (_closing.IsCancellationRequested) return;
                 _updateState = UpdateState.None;
-                UpdateChip.Visibility = Visibility.Collapsed;
+                UpdateChip.Visibility = Visibility.Collapsed; AdaptTopBar();
                 ShowToast("No se pudo descargar la actualización de Nexo: " + error.Message + " Se volverá a intentar la próxima vez que abras Nexo.", error: true, seconds: 7);
                 return;
             }
@@ -1718,7 +1798,7 @@ namespace Nexo
             _updateState = UpdateState.Notice;
             UpdateText.Text = chip;
             UpdateChip.ToolTip = "Abrir la página de descargas de Nexo";
-            UpdateChip.Visibility = Visibility.Visible;
+            UpdateChip.Visibility = Visibility.Visible; AdaptTopBar();
             ShowToast(message, error, seconds: 9);
         }
 
@@ -1778,7 +1858,7 @@ namespace Nexo
             catch (Exception error)
             {
                 _updateState = UpdateState.None;
-                UpdateChip.Visibility = Visibility.Collapsed;
+                UpdateChip.Visibility = Visibility.Collapsed; AdaptTopBar();
                 ShowToast("No se pudo iniciar la actualización de Nexo: " + error.Message, error: true, seconds: 7);
             }
         }
@@ -1813,8 +1893,23 @@ namespace Nexo
             InfoName.FontSize = h < 760 ? 40 : h < 900 ? 50 : 64;
             ShelfArea.Height = h < 760 ? 214 : 250;
             if (!_gamesMode) InfoDescription.Visibility = _compact ? Visibility.Collapsed : Visibility.Visible;
-            Tagline.Visibility = ActualWidth < 1100 ? Visibility.Collapsed : Visibility.Visible;
+            OverlayCard.MaxHeight = Math.Max(320, h - 48);
+            AdaptTopBar();
             UpdateHints();
+        }
+
+        // Barra superior: si no cabe todo, cede primero el lema y después el chip de la tarjeta gráfica.
+        private bool _gpuShown;
+        private void AdaptTopBar()
+        {
+            double available = TopBar.ActualWidth > 0 ? TopBar.ActualWidth : ActualWidth - 68;
+            if (available <= 0) return;
+            var infinite = new Size(double.PositiveInfinity, double.PositiveInfinity);
+            bool Fits() { TopLeft.Measure(infinite); TopRight.Measure(infinite); return TopLeft.DesiredSize.Width + TopRight.DesiredSize.Width + 24 <= available; }
+            Tagline.Visibility = Visibility.Visible;
+            GpuChip.Visibility = _gpuShown ? Visibility.Visible : Visibility.Collapsed;
+            if (ActualWidth < 1100 || !Fits()) Tagline.Visibility = Visibility.Collapsed;
+            if (_gpuShown && !Fits()) GpuChip.Visibility = Visibility.Collapsed;
         }
 
         private void ToggleSound()
@@ -1822,6 +1917,10 @@ namespace Nexo
             _sounds.Muted = !_sounds.Muted;
             UpdateSoundIcon();
             if (!_sounds.Muted) _sounds.Move(2);
+            // Se recuerda para la próxima vez (Opciones › Sonidos de la interfaz).
+            try { _service?.SetOption(NexoOption.Sounds, !_sounds.Muted); }
+            catch (NexoException error) { ShowToast(error.Message, error: true); }
+            if (_overlay == OverlayPage.Options) BuildOverlay();
         }
 
         private void UpdateSoundIcon()

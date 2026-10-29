@@ -43,6 +43,9 @@ sealed class ShelfItem {
 
 data class Toast(val text: String, val error: Boolean = false, val id: Long = System.nanoTime())
 
+/** Filas de la pantalla de Opciones, en orden. */
+enum class OptionItem { Library, Artwork, AutoUpdate, UpdateNow, SwitchNotice, About, Donate }
+
 class NexoViewModel(app: Application) : AndroidViewModel(app) {
     val core: NexoCore = NexoCores.create(app)
     val systems: List<ConsoleSystem> = core.systems
@@ -77,7 +80,61 @@ class NexoViewModel(app: Application) : AndroidViewModel(app) {
     init {
         refreshStatuses()
         rescan()
-        checkAppUpdate()
+        checkAppUpdate(manual = false)
+    }
+
+    // ------------------------------------------------------------------ Opciones
+
+    var optionsOpen by mutableStateOf(false)
+        private set
+    var optionIndex by mutableIntStateOf(0)
+        private set
+    var downloadArtwork by mutableStateOf(core.settings.downloadArtwork)
+        private set
+    var checkUpdates by mutableStateOf(core.settings.checkUpdates)
+        private set
+    var hideSwitchKeysNotice by mutableStateOf(core.settings.hideSwitchKeysNotice)
+        private set
+    var checkingUpdates by mutableStateOf(false)
+        private set
+    val appVersion: String get() = core.appVersion
+    val options = OptionItem.entries
+
+    fun openOptions() { if (gamesMode) exitGames(); optionsOpen = true; optionIndex = 0 }
+    fun closeOptions() { optionsOpen = false }
+    fun moveOption(direction: Int) { optionIndex = (optionIndex + direction).coerceIn(0, options.lastIndex) }
+    fun selectOption(index: Int) { optionIndex = index.coerceIn(0, options.lastIndex) }
+
+    /** A o toque sobre una fila: cambia la opción o hace la acción. pickLibrary abre el selector de carpetas de Android. */
+    fun activateOption(item: OptionItem, activity: Activity, pickLibrary: () -> Unit) {
+        try {
+            when (item) {
+                OptionItem.Library -> pickLibrary()
+                OptionItem.Artwork -> {
+                    core.settings.downloadArtwork = !downloadArtwork
+                    downloadArtwork = core.settings.downloadArtwork
+                    // Al activarlas, la estantería vuelve a pedir el arte que falte.
+                    if (downloadArtwork) { artCache.clear(); rescan() }
+                }
+                OptionItem.AutoUpdate -> { core.settings.checkUpdates = !checkUpdates; checkUpdates = core.settings.checkUpdates }
+                OptionItem.UpdateNow -> checkAppUpdate(manual = true)
+                OptionItem.SwitchNotice -> {
+                    core.settings.hideSwitchKeysNotice = !hideSwitchKeysNotice
+                    hideSwitchKeysNotice = core.settings.hideSwitchKeysNotice
+                    refreshStatuses()
+                }
+                OptionItem.About -> report(core.openRepository(activity), "Abriendo el repositorio de Nexo en tu navegador…")
+                OptionItem.Donate -> donate(activity)
+            }
+        } catch (e: Exception) { show("No se pudo guardar la opción: ${e.message}", error = true) }
+    }
+
+    /** «No volver a mostrar» desde la guía de claves de Switch. */
+    fun hideSwitchKeysNotice() {
+        try { core.settings.hideSwitchKeysNotice = true; hideSwitchKeysNotice = true } catch (e: Exception) { show("No se pudo guardar: ${e.message}", error = true); return }
+        guide = null
+        refreshStatuses()
+        show("De acuerdo: no volveré a avisar de las claves de Switch. Puedes reactivarlo en Opciones.")
     }
 
     // ------------------------------------------------------------------ Actualización de Nexo
@@ -91,11 +148,19 @@ class NexoViewModel(app: Application) : AndroidViewModel(app) {
     private var updateApk: java.io.File? = null
     private var installingUpdate = false
 
-    /** Al abrir: si GitHub tiene una versión nueva con Nexo.apk, se descarga y verifica sola. Sin red no se avisa de nada. */
-    private fun checkAppUpdate() {
+    /**
+     * Al abrir (si la opción está activada): si GitHub tiene una versión nueva con Nexo.apk, se descarga y verifica sola.
+     * Sin red no se avisa de nada. manual: «Buscar actualizaciones ahora» en Opciones, que sí informa del resultado.
+     */
+    private fun checkAppUpdate(manual: Boolean) {
+        if (manual && (checkingUpdates || update != null)) { update?.let { show("Nexo ${it.version}: " + if (it.ready) "listo para instalar." else "descargando…") }; return }
         viewModelScope.launch {
-            delay(3000)
-            val found = core.checkAppUpdate() ?: return@launch
+            if (!manual) delay(3000) else checkingUpdates = true
+            val found = try { core.checkAppUpdate(manual) } finally { checkingUpdates = false }
+            if (found == null) {
+                if (manual) show("No hay una versión nueva: tienes Nexo ${core.appVersion} (o no se pudo consultar GitHub).")
+                return@launch
+            }
             update = UpdateUi(found.version)
             show("Hay una versión nueva de Nexo (${found.version}). Se descarga ahora; después Android te pedirá confirmar la instalación. Tus juegos y ajustes se conservan.")
             try {
@@ -154,7 +219,7 @@ class NexoViewModel(app: Application) : AndroidViewModel(app) {
     val setups = mutableStateMapOf<String, SystemSetupStatus>()
 
     /** Guía paso a paso para los emuladores que no dejan instalar desde fuera. */
-    data class Guide(val title: String, val message: String, val steps: List<String>, val openEmulator: Intent?)
+    data class Guide(val title: String, val message: String, val steps: List<String>, val openEmulator: Intent?, val keysNotice: Boolean = false)
 
     var guide by mutableStateOf<Guide?>(null)
         private set
@@ -177,7 +242,9 @@ class NexoViewModel(app: Application) : AndroidViewModel(app) {
         val setup = setups[current.id] ?: return
         when (setup.mode) {
             SystemSetupMode.NotRequired -> show(setup.message)
-            SystemSetupMode.MissingFiles -> guide = Guide("Faltan archivos de ${current.name}", setup.message, setup.steps, null)
+            // Switch: Nexo no ve las claves, pero pueden estar ya en Eden. Es solo un aviso y se puede ocultar.
+            SystemSetupMode.MissingFiles -> guide = if (current.id == "Switch") Guide("Claves de Switch", setup.message, setup.steps, null, keysNotice = true)
+                else Guide("Faltan archivos de ${current.name}", setup.message, setup.steps, null)
             SystemSetupMode.NeedsEdenGrant -> requestEdenGrant()
             else -> installFiles(current.id)
         }
@@ -231,12 +298,15 @@ class NexoViewModel(app: Application) : AndroidViewModel(app) {
             show("No pude usar esa carpeta: ${e.message}. Prueba con otra.", error = true)
             return
         }
+        val changed = libraryRoot != null
         libraryRoot = core.libraryRoot
         shelves.clear()
         artCache.clear()
         gamesMode = false
         gameIndex = 0
-        show("Biblioteca lista. Copia tus juegos en Nexo/Juegos/<consola> y aparecerán solos.")
+        show(if (changed) "Biblioteca cambiada. Nexo no movió ni borró nada de la carpeta anterior; busca ahora tus juegos en la nueva."
+             else "Biblioteca lista. Copia tus juegos en Juegos/<consola> dentro de esa carpeta y aparecerán solos.")
+        refreshStatuses()
         rescan()
     }
 
