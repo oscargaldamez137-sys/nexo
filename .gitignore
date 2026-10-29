@@ -1,0 +1,17 @@
+**/bin/
+**/obj/
+dist/
+arte-generado/
+Programa/
+.dotnet/
+.nuget/
+.nexo-test-*/
+**/nexo.json
+**/nexo.json.*.tmp
+__pycache__/
+*.pyc
+.vs/
+*.user
+*.suo
+work/
+**/.nexo-cache/

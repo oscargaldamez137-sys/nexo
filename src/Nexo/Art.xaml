@@ -1,0 +1,585 @@
+<!-- Ilustraciones originales de cada consola (sin logos ni marcas). Lienzo común de 400x300. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Marco invisible: todas las ilustraciones comparten límites y se alinean igual. -->
+  <GeometryDrawing x:Key="Art.Frame" Brush="Transparent" Geometry="M0,0 H400 V300 H0 Z"/>
+
+  <!-- Mando genérico de dos asas, reutilizado por PCSX2 y RPCS3. -->
+  <DrawingGroup x:Key="Art.Pad">
+    <GeometryDrawing Geometry="M10 30 C0 30 -6 52 4 62 C12 70 26 60 34 48 L86 48 C94 60 108 70 116 62 C126 52 120 30 110 30 C96 18 24 18 10 30 Z">
+      <GeometryDrawing.Brush>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+          <GradientStop Offset="0" Color="#3B404C"/>
+          <GradientStop Offset="1" Color="#1B1D24"/>
+        </LinearGradientBrush>
+      </GeometryDrawing.Brush>
+      <GeometryDrawing.Pen><Pen Brush="#0A0B0E" Thickness="2"/></GeometryDrawing.Pen>
+    </GeometryDrawing>
+    <GeometryDrawing Brush="#111318"><GeometryDrawing.Geometry><EllipseGeometry Center="24,38" RadiusX="9" RadiusY="9"/></GeometryDrawing.Geometry></GeometryDrawing>
+    <GeometryDrawing Geometry="M24 32 V44 M18 38 H30"><GeometryDrawing.Pen><Pen Brush="#7A808C" Thickness="3"/></GeometryDrawing.Pen></GeometryDrawing>
+    <GeometryDrawing Brush="#56C596"><GeometryDrawing.Geometry><EllipseGeometry Center="94,33" RadiusX="3.5" RadiusY="3.5"/></GeometryDrawing.Geometry></GeometryDrawing>
+    <GeometryDrawing Brush="#EF6B73"><GeometryDrawing.Geometry><EllipseGeometry Center="102,39" RadiusX="3.5" RadiusY="3.5"/></GeometryDrawing.Geometry></GeometryDrawing>
+    <GeometryDrawing Brush="#6FA8FF"><GeometryDrawing.Geometry><EllipseGeometry Center="94,45" RadiusX="3.5" RadiusY="3.5"/></GeometryDrawing.Geometry></GeometryDrawing>
+    <GeometryDrawing Brush="#D58CF0"><GeometryDrawing.Geometry><EllipseGeometry Center="86,39" RadiusX="3.5" RadiusY="3.5"/></GeometryDrawing.Geometry></GeometryDrawing>
+    <GeometryDrawing Brush="#0F1116"><GeometryDrawing.Geometry><EllipseGeometry Center="46,50" RadiusX="7" RadiusY="7"/></GeometryDrawing.Geometry></GeometryDrawing>
+    <GeometryDrawing Brush="#0F1116"><GeometryDrawing.Geometry><EllipseGeometry Center="74,50" RadiusX="7" RadiusY="7"/></GeometryDrawing.Geometry></GeometryDrawing>
+  </DrawingGroup>
+
+  <!-- ===================== RetroArch: mando retro y cartuchos ===================== -->
+  <DrawingImage x:Key="Art.Retro">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <StaticResource ResourceKey="Art.Frame"/>
+        <GeometryDrawing Brush="#4D000000"><GeometryDrawing.Geometry><EllipseGeometry Center="200,262" RadiusX="160" RadiusY="13"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <!-- Cartucho rojo -->
+        <DrawingGroup>
+          <DrawingGroup.Transform><TransformGroup><RotateTransform Angle="-14"/><TranslateTransform X="64" Y="40"/></TransformGroup></DrawingGroup.Transform>
+          <GeometryDrawing Brush="#8A8F99" Geometry="M0,8 A8,8 0 0 1 8,0 H84 A8,8 0 0 1 92,8 V112 H0 Z"/>
+          <GeometryDrawing Brush="#FF6B6B"><GeometryDrawing.Geometry><RectangleGeometry Rect="12,14,68,56" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#FFD166" Geometry="M22,60 L36,38 L46,50 L56,34 L70,60 Z"/>
+          <GeometryDrawing Brush="#6F747E" Geometry="M10,84 H82 V88 H10 Z M10,94 H82 V98 H10 Z"/>
+        </DrawingGroup>
+        <!-- Cartucho oscuro -->
+        <DrawingGroup>
+          <DrawingGroup.Transform><TransformGroup><RotateTransform Angle="12"/><TranslateTransform X="250" Y="30"/></TransformGroup></DrawingGroup.Transform>
+          <GeometryDrawing Brush="#3D4250" Geometry="M0,8 A8,8 0 0 1 8,0 H84 A8,8 0 0 1 92,8 V112 H0 Z"/>
+          <GeometryDrawing Brush="#4CC9F0"><GeometryDrawing.Geometry><RectangleGeometry Rect="12,14,68,56" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#F72585"><GeometryDrawing.Geometry><EllipseGeometry Center="46,42" RadiusX="14" RadiusY="14"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#4CC9F0"><GeometryDrawing.Geometry><EllipseGeometry Center="46,42" RadiusX="6" RadiusY="6"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#2A2E38" Geometry="M10,84 H82 V88 H10 Z M10,94 H82 V98 H10 Z"/>
+        </DrawingGroup>
+        <!-- Cartucho morado -->
+        <DrawingGroup>
+          <DrawingGroup.Transform><TranslateTransform X="160" Y="20"/></DrawingGroup.Transform>
+          <GeometryDrawing Brush="#6C4AB6" Geometry="M0,8 A8,8 0 0 1 8,0 H72 A8,8 0 0 1 80,8 V100 H0 Z"/>
+          <GeometryDrawing Brush="#80ED99"><GeometryDrawing.Geometry><RectangleGeometry Rect="10,12,60,48" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#22577A" Geometry="M18,36 h8 v8 h-8 Z M26,28 h8 v8 h-8 Z M34,36 h8 v8 h-8 Z M42,28 h8 v8 h-8 Z M50,36 h8 v8 h-8 Z"/>
+        </DrawingGroup>
+        <!-- Mando -->
+        <DrawingGroup>
+          <DrawingGroup.Transform><TranslateTransform X="70" Y="128"/></DrawingGroup.Transform>
+          <GeometryDrawing>
+            <GeometryDrawing.Brush>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Offset="0" Color="#F4F1EA"/>
+                <GradientStop Offset="1" Color="#CBC5B8"/>
+              </LinearGradientBrush>
+            </GeometryDrawing.Brush>
+            <GeometryDrawing.Pen><Pen Brush="#8D8676" Thickness="3"/></GeometryDrawing.Pen>
+            <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,260,110" RadiusX="20" RadiusY="20"/></GeometryDrawing.Geometry>
+          </GeometryDrawing>
+          <GeometryDrawing>
+            <GeometryDrawing.Brush>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Offset="0" Color="#2B2F3A"/>
+                <GradientStop Offset="1" Color="#171A21"/>
+              </LinearGradientBrush>
+            </GeometryDrawing.Brush>
+            <GeometryDrawing.Geometry><RectangleGeometry Rect="14,14,232,82" RadiusX="12" RadiusY="12"/></GeometryDrawing.Geometry>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#E9E5DC">
+            <GeometryDrawing.Geometry>
+              <GeometryGroup>
+                <RectangleGeometry Rect="46,34,16,44" RadiusX="3" RadiusY="3"/>
+                <RectangleGeometry Rect="32,48,44,16" RadiusX="3" RadiusY="3"/>
+              </GeometryGroup>
+            </GeometryDrawing.Geometry>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#6F747E">
+            <GeometryDrawing.Geometry>
+              <GeometryGroup>
+                <RectangleGeometry Rect="104,58,22,7" RadiusX="3.5" RadiusY="3.5"/>
+                <RectangleGeometry Rect="134,58,22,7" RadiusX="3.5" RadiusY="3.5"/>
+              </GeometryGroup>
+            </GeometryDrawing.Geometry>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#E63946">
+            <GeometryDrawing.Pen><Pen Brush="#40000000" Thickness="2"/></GeometryDrawing.Pen>
+            <GeometryDrawing.Geometry>
+              <GeometryGroup>
+                <EllipseGeometry Center="190,66" RadiusX="13" RadiusY="13"/>
+                <EllipseGeometry Center="222,48" RadiusX="13" RadiusY="13"/>
+              </GeometryGroup>
+            </GeometryDrawing.Geometry>
+          </GeometryDrawing>
+        </DrawingGroup>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!-- ===================== PCSX2: consola de sobremesa de 2000 ===================== -->
+  <DrawingImage x:Key="Art.PS2">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <StaticResource ResourceKey="Art.Frame"/>
+        <GeometryDrawing Brush="#59000000"><GeometryDrawing.Geometry><EllipseGeometry Center="200,268" RadiusX="150" RadiusY="14"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#0D0F13" Geometry="M92,250 L300,250 L318,238 L110,238 Z"/>
+        <GeometryDrawing Geometry="M110,238 L318,238 L318,92 L110,92 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+              <GradientStop Offset="0" Color="#3A3F4B"/>
+              <GradientStop Offset="1" Color="#14161C"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="M110,92 L318,92 L336,78 L128,78 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+              <GradientStop Offset="0" Color="#5A6070"/>
+              <GradientStop Offset="1" Color="#2A2E38"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#0F1116" Geometry="M318,92 L336,78 L336,224 L318,238 Z"/>
+        <GeometryDrawing Geometry="M126,110 H302 M126,122 H302 M126,134 H302"><GeometryDrawing.Pen><Pen Brush="#CC0B0C10" Thickness="3"/></GeometryDrawing.Pen></GeometryDrawing>
+        <GeometryDrawing Brush="#0B0C10"><GeometryDrawing.Geometry><RectangleGeometry Rect="126,150,176,20" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#1D2129"><GeometryDrawing.Geometry><RectangleGeometry Rect="132,157,120,6" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing>
+          <GeometryDrawing.Brush>
+            <RadialGradientBrush>
+              <GradientStop Offset="0" Color="#E66FB6FF"/>
+              <GradientStop Offset="1" Color="#006FB6FF"/>
+            </RadialGradientBrush>
+          </GeometryDrawing.Brush>
+          <GeometryDrawing.Geometry><EllipseGeometry Center="286,160" RadiusX="16" RadiusY="16"/></GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#9FD0FF"><GeometryDrawing.Geometry><EllipseGeometry Center="286,160" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#0B0C10">
+          <GeometryDrawing.Geometry>
+            <GeometryGroup>
+              <RectangleGeometry Rect="126,190,40,8" RadiusX="2" RadiusY="2"/>
+              <RectangleGeometry Rect="172,190,40,8" RadiusX="2" RadiusY="2"/>
+            </GeometryGroup>
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <DrawingGroup>
+          <DrawingGroup.Transform><TransformGroup><RotateTransform Angle="-8"/><TranslateTransform X="150" Y="196"/></TransformGroup></DrawingGroup.Transform>
+          <StaticResource ResourceKey="Art.Pad"/>
+        </DrawingGroup>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!-- ===================== Dolphin: cubo con asa y consola blanca ===================== -->
+  <DrawingImage x:Key="Art.GameCube-Wii">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <StaticResource ResourceKey="Art.Frame"/>
+        <GeometryDrawing Brush="#52000000"><GeometryDrawing.Geometry><EllipseGeometry Center="200,262" RadiusX="165" RadiusY="13"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <!-- Consola blanca de pie -->
+        <DrawingGroup>
+          <DrawingGroup.Transform><TranslateTransform X="268" Y="74"/></DrawingGroup.Transform>
+          <GeometryDrawing>
+            <GeometryDrawing.Brush>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Offset="0" Color="#FFFFFF"/>
+                <GradientStop Offset="1" Color="#CFD6E2"/>
+              </LinearGradientBrush>
+            </GeometryDrawing.Brush>
+            <GeometryDrawing.Pen><Pen Brush="#AAB3C2" Thickness="2"/></GeometryDrawing.Pen>
+            <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,40,176" RadiusX="6" RadiusY="6"/></GeometryDrawing.Geometry>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#9AA4B4"><GeometryDrawing.Geometry><RectangleGeometry Rect="18,20,4,120" RadiusX="2" RadiusY="2"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Geometry="M14,20 H26"><GeometryDrawing.Pen><Pen Brush="#5FD3FF" Thickness="3" StartLineCap="Round" EndLineCap="Round"/></GeometryDrawing.Pen></GeometryDrawing>
+          <GeometryDrawing Brush="#E5E9F0">
+            <GeometryDrawing.Pen><Pen Brush="#AAB3C2" Thickness="2"/></GeometryDrawing.Pen>
+            <GeometryDrawing.Geometry><RectangleGeometry Rect="-8,172,56,10" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+          </GeometryDrawing>
+        </DrawingGroup>
+        <!-- Mando de movimiento -->
+        <DrawingGroup>
+          <DrawingGroup.Transform><TransformGroup><RotateTransform Angle="14"/><TranslateTransform X="330" Y="120"/></TransformGroup></DrawingGroup.Transform>
+          <GeometryDrawing>
+            <GeometryDrawing.Brush>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Offset="0" Color="#FFFFFF"/>
+                <GradientStop Offset="1" Color="#CFD6E2"/>
+              </LinearGradientBrush>
+            </GeometryDrawing.Brush>
+            <GeometryDrawing.Pen><Pen Brush="#AAB3C2" Thickness="2"/></GeometryDrawing.Pen>
+            <GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,26,110" RadiusX="10" RadiusY="10"/></GeometryDrawing.Geometry>
+          </GeometryDrawing>
+          <GeometryDrawing Geometry="M13,14 V28 M6,21 H20"><GeometryDrawing.Pen><Pen Brush="#9AA4B4" Thickness="4" StartLineCap="Round" EndLineCap="Round"/></GeometryDrawing.Pen></GeometryDrawing>
+          <GeometryDrawing Brush="#D7DDE7">
+            <GeometryDrawing.Pen><Pen Brush="#AAB3C2" Thickness="1.5"/></GeometryDrawing.Pen>
+            <GeometryDrawing.Geometry><EllipseGeometry Center="13,44" RadiusX="6" RadiusY="6"/></GeometryDrawing.Geometry>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#9AA4B4">
+            <GeometryDrawing.Geometry>
+              <GeometryGroup>
+                <EllipseGeometry Center="13,80" RadiusX="2.5" RadiusY="2.5"/>
+                <EllipseGeometry Center="13,90" RadiusX="2.5" RadiusY="2.5"/>
+              </GeometryGroup>
+            </GeometryDrawing.Geometry>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#5FD3FF" Geometry="M5,100 h3 v3 h-3 Z M10,100 h3 v3 h-3 Z M15,100 h3 v3 h-3 Z M20,100 h3 v3 h-3 Z"/>
+        </DrawingGroup>
+        <!-- Cubo con asa -->
+        <DrawingGroup>
+          <DrawingGroup.Transform><TranslateTransform X="60" Y="92"/></DrawingGroup.Transform>
+          <GeometryDrawing Geometry="M20,22 C20,-6 120,-6 120,22"><GeometryDrawing.Pen><Pen Brush="#2A1D74" Thickness="12" StartLineCap="Round" EndLineCap="Round"/></GeometryDrawing.Pen></GeometryDrawing>
+          <GeometryDrawing Geometry="M0,40 L120,40 L160,16 L40,16 Z">
+            <GeometryDrawing.Brush>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Offset="0" Color="#9B8CFF"/>
+                <GradientStop Offset="1" Color="#6A55E0"/>
+              </LinearGradientBrush>
+            </GeometryDrawing.Brush>
+          </GeometryDrawing>
+          <GeometryDrawing Geometry="M0,40 L120,40 L120,160 L0,160 Z">
+            <GeometryDrawing.Brush>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Offset="0" Color="#5A44CF"/>
+                <GradientStop Offset="1" Color="#3B2A96"/>
+              </LinearGradientBrush>
+            </GeometryDrawing.Brush>
+          </GeometryDrawing>
+          <GeometryDrawing Geometry="M120,40 L160,16 L160,136 L120,160 Z">
+            <GeometryDrawing.Brush>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Offset="0" Color="#4632B0"/>
+                <GradientStop Offset="1" Color="#2A1D74"/>
+              </LinearGradientBrush>
+            </GeometryDrawing.Brush>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#4A36C0"><GeometryDrawing.Geometry><EllipseGeometry Center="80,28" RadiusX="30" RadiusY="9"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#7D6BF0"><GeometryDrawing.Geometry><EllipseGeometry Center="80,27" RadiusX="22" RadiusY="6"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#24196A">
+            <GeometryDrawing.Geometry>
+              <GeometryGroup>
+                <RectangleGeometry Rect="16,140,20,10" RadiusX="2" RadiusY="2"/>
+                <RectangleGeometry Rect="44,140,20,10" RadiusX="2" RadiusY="2"/>
+                <RectangleGeometry Rect="72,140,20,10" RadiusX="2" RadiusY="2"/>
+                <RectangleGeometry Rect="100,140,12,10" RadiusX="2" RadiusY="2"/>
+              </GeometryGroup>
+            </GeometryDrawing.Geometry>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#FFD166"><GeometryDrawing.Geometry><EllipseGeometry Center="104,58" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry></GeometryDrawing>
+        </DrawingGroup>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!-- ===================== RPCS3: consola curva y brillante de 2006 ===================== -->
+  <DrawingImage x:Key="Art.PS3">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <StaticResource ResourceKey="Art.Frame"/>
+        <GeometryDrawing Brush="#66000000"><GeometryDrawing.Geometry><EllipseGeometry Center="200,262" RadiusX="160" RadiusY="14"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Geometry="M62,240 L62,150 C62,96 130,70 200,70 C270,70 338,96 338,150 L338,240 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+              <GradientStop Offset="0" Color="#4A4F5C"/>
+              <GradientStop Offset="0.35" Color="#1A1C22"/>
+              <GradientStop Offset="1" Color="#050608"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="M84,132 C100,98 150,84 200,84 C250,84 300,98 316,132">
+          <GeometryDrawing.Pen>
+            <Pen Thickness="10" StartLineCap="Round" EndLineCap="Round">
+              <Pen.Brush>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                  <GradientStop Offset="0" Color="#00FFFFFF"/>
+                  <GradientStop Offset="0.5" Color="#59FFFFFF"/>
+                  <GradientStop Offset="1" Color="#00FFFFFF"/>
+                </LinearGradientBrush>
+              </Pen.Brush>
+            </Pen>
+          </GeometryDrawing.Pen>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#0A0B0E" Geometry="M62,206 H338 V240 H62 Z"/>
+        <GeometryDrawing Geometry="M62,204 H338 V207 H62 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+              <GradientStop Offset="0" Color="#6B717D"/>
+              <GradientStop Offset="0.5" Color="#D9DDE4"/>
+              <GradientStop Offset="1" Color="#6B717D"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#20232A"><GeometryDrawing.Geometry><RectangleGeometry Rect="96,219,150,5" RadiusX="2.5" RadiusY="2.5"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#2E3EE08A"><GeometryDrawing.Geometry><EllipseGeometry Center="290,222" RadiusX="11" RadiusY="11"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#3EE08A"><GeometryDrawing.Geometry><EllipseGeometry Center="290,222" RadiusX="5" RadiusY="5"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#2A2D35"><GeometryDrawing.Geometry><EllipseGeometry Center="312,222" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#111318" Geometry="M62,240 L338,240 L330,250 L70,250 Z"/>
+        <DrawingGroup>
+          <DrawingGroup.Transform><TranslateTransform X="140" Y="150"/></DrawingGroup.Transform>
+          <StaticResource ResourceKey="Art.Pad"/>
+          <GeometryDrawing Brush="#C9CDD5"><GeometryDrawing.Geometry><EllipseGeometry Center="60,34" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry></GeometryDrawing>
+        </DrawingGroup>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!-- ===================== PPSSPP: portátil horizontal de 2004 ===================== -->
+  <DrawingImage x:Key="Art.PSP">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <StaticResource ResourceKey="Art.Frame"/>
+        <GeometryDrawing Brush="#59000000"><GeometryDrawing.Geometry><EllipseGeometry Center="200,246" RadiusX="170" RadiusY="12"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing>
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+              <GradientStop Offset="0" Color="#3D424E"/>
+              <GradientStop Offset="1" Color="#101217"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+          <GeometryDrawing.Pen><Pen Brush="#0A0B0E" Thickness="3"/></GeometryDrawing.Pen>
+          <GeometryDrawing.Geometry><RectangleGeometry Rect="28,92,344,140" RadiusX="70" RadiusY="70"/></GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <GeometryDrawing>
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+              <GradientStop Offset="0" Color="#47FFFFFF"/>
+              <GradientStop Offset="1" Color="#00FFFFFF"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+          <GeometryDrawing.Geometry><RectangleGeometry Rect="40,98,320,40" RadiusX="20" RadiusY="20"/></GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#050608"><GeometryDrawing.Geometry><RectangleGeometry Rect="112,108,176,104" RadiusX="6" RadiusY="6"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing>
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+              <GradientStop Offset="0" Color="#FFB347"/>
+              <GradientStop Offset="0.55" Color="#FF6F61"/>
+              <GradientStop Offset="1" Color="#6A3CBC"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+          <GeometryDrawing.Geometry><RectangleGeometry Rect="118,114,164,92" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#E6FFE7A8"><GeometryDrawing.Geometry><EllipseGeometry Center="234,146" RadiusX="14" RadiusY="14"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#D92B1650" Geometry="M118,190 L152,160 L176,178 L206,150 L246,186 L282,166 L282,206 L118,206 Z"/>
+        <GeometryDrawing Brush="#160B2C" Geometry="M118,198 L160,182 L196,196 L240,178 L282,194 L282,206 L118,206 Z"/>
+        <GeometryDrawing Brush="#0B0C10">
+          <GeometryDrawing.Geometry>
+            <GeometryGroup FillRule="Nonzero">
+              <RectangleGeometry Rect="62,134,14,40" RadiusX="3" RadiusY="3"/>
+              <RectangleGeometry Rect="49,147,40,14" RadiusX="3" RadiusY="3"/>
+            </GeometryGroup>
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#0B0C10">
+          <GeometryDrawing.Pen><Pen Brush="#2A2E38" Thickness="2"/></GeometryDrawing.Pen>
+          <GeometryDrawing.Geometry><EllipseGeometry Center="69,196" RadiusX="9" RadiusY="9"/></GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#1A1D24"><GeometryDrawing.Pen><Pen Brush="#56C596" Thickness="2.5"/></GeometryDrawing.Pen><GeometryDrawing.Geometry><EllipseGeometry Center="330,140" RadiusX="8" RadiusY="8"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#1A1D24"><GeometryDrawing.Pen><Pen Brush="#EF6B73" Thickness="2.5"/></GeometryDrawing.Pen><GeometryDrawing.Geometry><EllipseGeometry Center="348,158" RadiusX="8" RadiusY="8"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#1A1D24"><GeometryDrawing.Pen><Pen Brush="#6FA8FF" Thickness="2.5"/></GeometryDrawing.Pen><GeometryDrawing.Geometry><EllipseGeometry Center="330,176" RadiusX="8" RadiusY="8"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#1A1D24"><GeometryDrawing.Pen><Pen Brush="#D58CF0" Thickness="2.5"/></GeometryDrawing.Pen><GeometryDrawing.Geometry><EllipseGeometry Center="312,158" RadiusX="8" RadiusY="8"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#2A2E38">
+          <GeometryDrawing.Geometry>
+            <GeometryGroup>
+              <RectangleGeometry Rect="150,218,18,5" RadiusX="2.5" RadiusY="2.5"/>
+              <RectangleGeometry Rect="176,218,18,5" RadiusX="2.5" RadiusY="2.5"/>
+              <RectangleGeometry Rect="206,218,18,5" RadiusX="2.5" RadiusY="2.5"/>
+              <RectangleGeometry Rect="232,218,18,5" RadiusX="2.5" RadiusY="2.5"/>
+            </GeometryGroup>
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+<!-- ===================== PS4: consola plana de dos niveles de 2013 ===================== -->
+  <DrawingImage x:Key="Art.PS4">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <StaticResource ResourceKey="Art.Frame"/>
+        <GeometryDrawing Brush="#59000000"><GeometryDrawing.Geometry><EllipseGeometry Center="200,250" RadiusX="170" RadiusY="14"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Geometry="M40,200 L300,200 L360,168 L100,168 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+              <GradientStop Offset="0" Color="#2C303A"/>
+              <GradientStop Offset="1" Color="#0E1015"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#07080B" Geometry="M40,200 L300,200 L300,222 L40,222 Z"/>
+        <GeometryDrawing Brush="#0B0C10" Geometry="M300,200 L360,168 L360,190 L300,222 Z"/>
+        <GeometryDrawing Geometry="M40,198 L300,198 L300,203 L40,203 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+              <GradientStop Offset="0" Color="#002E8BFF"/>
+              <GradientStop Offset="0.5" Color="#FF5AA9FF"/>
+              <GradientStop Offset="1" Color="#002E8BFF"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="M48,196 L292,196 L352,164 L108,164 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+              <GradientStop Offset="0" Color="#454B58"/>
+              <GradientStop Offset="0.5" Color="#22252D"/>
+              <GradientStop Offset="1" Color="#121419"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#14FFFFFF" Geometry="M150,164 L210,164 L150,196 L90,196 Z"/>
+        <DrawingGroup>
+          <DrawingGroup.Transform><TranslateTransform X="128" Y="88"/></DrawingGroup.Transform>
+          <GeometryDrawing Geometry="M14,30 C2,30 -6,58 4,70 C12,78 28,68 38,54 L106,54 C116,68 132,78 140,70 C150,58 142,30 130,30 C112,16 32,16 14,30 Z">
+            <GeometryDrawing.Brush>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Offset="0" Color="#3B404C"/>
+                <GradientStop Offset="1" Color="#15171D"/>
+              </LinearGradientBrush>
+            </GeometryDrawing.Brush>
+            <GeometryDrawing.Pen><Pen Brush="#0A0B0E" Thickness="2"/></GeometryDrawing.Pen>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#0D0F13"><GeometryDrawing.Geometry><RectangleGeometry Rect="50,22,44,20" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#5AA9FF"><GeometryDrawing.Geometry><RectangleGeometry Rect="56,19,32,3" RadiusX="1.5" RadiusY="1.5"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Geometry="M26,32 V46 M19,39 H33"><GeometryDrawing.Pen><Pen Brush="#7A808C" Thickness="3"/></GeometryDrawing.Pen></GeometryDrawing>
+          <GeometryDrawing Brush="#56C596"><GeometryDrawing.Geometry><EllipseGeometry Center="118,32" RadiusX="3.5" RadiusY="3.5"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#EF6B73"><GeometryDrawing.Geometry><EllipseGeometry Center="126,39" RadiusX="3.5" RadiusY="3.5"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#6FA8FF"><GeometryDrawing.Geometry><EllipseGeometry Center="118,46" RadiusX="3.5" RadiusY="3.5"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#D58CF0"><GeometryDrawing.Geometry><EllipseGeometry Center="110,39" RadiusX="3.5" RadiusY="3.5"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#0F1116">
+            <GeometryDrawing.Geometry>
+              <GeometryGroup>
+                <EllipseGeometry Center="50,56" RadiusX="8" RadiusY="8"/>
+                <EllipseGeometry Center="94,56" RadiusX="8" RadiusY="8"/>
+              </GeometryGroup>
+            </GeometryDrawing.Geometry>
+          </GeometryDrawing>
+        </DrawingGroup>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!-- ===================== Switch: tableta con dos mandos laterales de 2017 ===================== -->
+  <DrawingImage x:Key="Art.Switch">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <StaticResource ResourceKey="Art.Frame"/>
+        <GeometryDrawing Brush="#4D000000"><GeometryDrawing.Geometry><EllipseGeometry Center="200,250" RadiusX="175" RadiusY="12"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Geometry="M78,90 H100 V226 H78 A44,44 0 0 1 34,182 V134 A44,44 0 0 1 78,90 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+              <GradientStop Offset="0" Color="#3BD4F0"/>
+              <GradientStop Offset="1" Color="#0096B8"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#1F2A30"><GeometryDrawing.Geometry><EllipseGeometry Center="68,124" RadiusX="11" RadiusY="11"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#1F2A30">
+          <GeometryDrawing.Geometry>
+            <GeometryGroup>
+              <EllipseGeometry Center="68,160" RadiusX="5" RadiusY="5"/>
+              <EllipseGeometry Center="58,170" RadiusX="5" RadiusY="5"/>
+              <EllipseGeometry Center="78,170" RadiusX="5" RadiusY="5"/>
+              <EllipseGeometry Center="68,180" RadiusX="5" RadiusY="5"/>
+            </GeometryGroup>
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="M322,90 H300 V226 H322 A44,44 0 0 0 366,182 V134 A44,44 0 0 0 322,90 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+              <GradientStop Offset="0" Color="#FF6B6B"/>
+              <GradientStop Offset="1" Color="#E0304A"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#2A1D20">
+          <GeometryDrawing.Geometry>
+            <GeometryGroup>
+              <EllipseGeometry Center="332,124" RadiusX="5" RadiusY="5"/>
+              <EllipseGeometry Center="322,134" RadiusX="5" RadiusY="5"/>
+              <EllipseGeometry Center="342,134" RadiusX="5" RadiusY="5"/>
+              <EllipseGeometry Center="332,144" RadiusX="5" RadiusY="5"/>
+            </GeometryGroup>
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#2A1D20"><GeometryDrawing.Geometry><EllipseGeometry Center="332,178" RadiusX="11" RadiusY="11"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#202329"><GeometryDrawing.Geometry><RectangleGeometry Rect="100,90,200,136" RadiusX="6" RadiusY="6"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing>
+          <GeometryDrawing.Geometry><RectangleGeometry Rect="110,100,180,116" RadiusX="3" RadiusY="3"/></GeometryDrawing.Geometry>
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+              <GradientStop Offset="0" Color="#FF8FA3"/>
+              <GradientStop Offset="0.5" Color="#FFC86B"/>
+              <GradientStop Offset="1" Color="#7BE0FF"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Brush="#E6FFFFFF"><GeometryDrawing.Geometry><EllipseGeometry Center="250,128" RadiusX="12" RadiusY="12"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#CC2E7D5B" Geometry="M110,196 L148,160 L176,182 L212,150 L252,186 L290,170 L290,216 L110,216 Z"/>
+        <GeometryDrawing Brush="#1F5C43" Geometry="M110,204 L158,188 L200,202 L244,184 L290,200 L290,216 L110,216 Z"/>
+        <GeometryDrawing Brush="#33FFFFFF" Geometry="M110,100 L190,100 L130,216 L110,216 Z"/>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!-- ===================== PS5: torre blanca con alas y núcleo negro de 2020 ===================== -->
+  <DrawingImage x:Key="Art.PS5">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <StaticResource ResourceKey="Art.Frame"/>
+        <GeometryDrawing Brush="#59000000"><GeometryDrawing.Geometry><EllipseGeometry Center="190,262" RadiusX="150" RadiusY="12"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Brush="#1A1C22"><GeometryDrawing.Geometry><EllipseGeometry Center="172,252" RadiusX="46" RadiusY="9"/></GeometryDrawing.Geometry></GeometryDrawing>
+        <GeometryDrawing Geometry="M150,40 H194 V246 H150 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+              <GradientStop Offset="0" Color="#0B0C10"/>
+              <GradientStop Offset="0.5" Color="#2A2D35"/>
+              <GradientStop Offset="1" Color="#0B0C10"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="M150,40 C118,36 104,30 98,22 C92,80 96,170 108,248 L150,246 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+              <GradientStop Offset="0" Color="#C9D1DE"/>
+              <GradientStop Offset="0.6" Color="#FFFFFF"/>
+              <GradientStop Offset="1" Color="#E4E9F1"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="M194,40 C226,36 240,30 246,22 C252,80 248,170 236,248 L194,246 Z">
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+              <GradientStop Offset="0" Color="#E4E9F1"/>
+              <GradientStop Offset="0.4" Color="#FFFFFF"/>
+              <GradientStop Offset="1" Color="#B9C2D0"/>
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="M151,44 V242">
+          <GeometryDrawing.Pen>
+            <Pen Thickness="3">
+              <Pen.Brush>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                  <GradientStop Offset="0" Color="#007CB7FF"/>
+                  <GradientStop Offset="0.5" Color="#FF7CB7FF"/>
+                  <GradientStop Offset="1" Color="#007CB7FF"/>
+                </LinearGradientBrush>
+              </Pen.Brush>
+            </Pen>
+          </GeometryDrawing.Pen>
+        </GeometryDrawing>
+        <DrawingGroup>
+          <DrawingGroup.Transform><TranslateTransform X="228" Y="170"/></DrawingGroup.Transform>
+          <GeometryDrawing Geometry="M12,26 C2,26 -6,50 4,60 C12,68 24,58 32,46 L84,46 C92,58 104,68 112,60 C122,50 114,26 104,26 C90,14 26,14 12,26 Z">
+            <GeometryDrawing.Brush>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Offset="0" Color="#FFFFFF"/>
+                <GradientStop Offset="1" Color="#C9D1DE"/>
+              </LinearGradientBrush>
+            </GeometryDrawing.Brush>
+            <GeometryDrawing.Pen><Pen Brush="#8E98A8" Thickness="1.5"/></GeometryDrawing.Pen>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#1A1C22"><GeometryDrawing.Geometry><RectangleGeometry Rect="38,22,40,16" RadiusX="4" RadiusY="4"/></GeometryDrawing.Geometry></GeometryDrawing>
+          <GeometryDrawing Brush="#1A1C22">
+            <GeometryDrawing.Geometry>
+              <GeometryGroup>
+                <EllipseGeometry Center="40,48" RadiusX="7" RadiusY="7"/>
+                <EllipseGeometry Center="76,48" RadiusX="7" RadiusY="7"/>
+              </GeometryGroup>
+            </GeometryDrawing.Geometry>
+          </GeometryDrawing>
+          <GeometryDrawing Brush="#7CB7FF"><GeometryDrawing.Geometry><RectangleGeometry Rect="40,19,36,2.5" RadiusX="1.2" RadiusY="1.2"/></GeometryDrawing.Geometry></GeometryDrawing>
+        </DrawingGroup>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+</ResourceDictionary>

@@ -1,0 +1,164 @@
+<Application x:Class="Nexo.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml"
+             ShutdownMode="OnMainWindowClose">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Art.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+
+      <FontFamily x:Key="Font.Ui">Segoe UI Variable Display, Segoe UI</FontFamily>
+      <FontFamily x:Key="Font.Mono">Cascadia Mono, Consolas</FontFamily>
+
+      <Color x:Key="Color.Bg">#07080D</Color>
+      <SolidColorBrush x:Key="Brush.Ink" Color="#F3F5FB"/>
+      <SolidColorBrush x:Key="Brush.InkSoft" Color="#B7BDD0"/>
+      <SolidColorBrush x:Key="Brush.InkFaint" Color="#7C8299"/>
+      <SolidColorBrush x:Key="Brush.Glass" Color="#0FFFFFFF"/>
+      <SolidColorBrush x:Key="Brush.GlassStrong" Color="#1FFFFFFF"/>
+      <SolidColorBrush x:Key="Brush.Line" Color="#1FFFFFFF"/>
+      <SolidColorBrush x:Key="Brush.Ok" Color="#4ADE80"/>
+      <SolidColorBrush x:Key="Brush.Warn" Color="#FBBF24"/>
+
+      <!-- Colores del sistema seleccionado: MainWindow los anima al cambiar de consola. -->
+      <SolidColorBrush x:Key="Brush.Accent" Color="#7CF4FF"/>
+      <SolidColorBrush x:Key="Brush.Primary" Color="#5B6CFF"/>
+
+      <Style TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Ui}"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Ink}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
+      </Style>
+
+      <!-- Tecla dibujada como en la web: <kbd>. -->
+      <Style x:Key="Kbd" TargetType="Border">
+        <Setter Property="BorderBrush" Value="#40FFFFFF"/>
+        <Setter Property="BorderThickness" Value="1,1,1,2"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="7,1"/>
+        <Setter Property="Margin" Value="3,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+      </Style>
+
+      <!-- Botón de cristal: base de todos los botones de acción. -->
+      <Style x:Key="Button.Glass" TargetType="Button">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Ink}"/>
+        <Setter Property="Background" Value="{StaticResource Brush.Glass}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Line}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontFamily" Value="{StaticResource Font.Ui}"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="22,12"/>
+        <Setter Property="Margin" Value="6,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <!-- Como en una consola: Enter siempre hace la acción principal, nunca "el último botón pulsado". -->
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform"><Setter.Value><TranslateTransform/></Setter.Value></Setter>
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="Button">
+              <Border x:Name="Chrome" CornerRadius="14" Background="{TemplateBinding Background}"
+                      BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                      Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                  <Setter TargetName="Chrome" Property="Background" Value="{StaticResource Brush.GlassStrong}"/>
+                  <Trigger.EnterActions>
+                    <BeginStoryboard>
+                      <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="-2" Duration="0:0:0.18"/>
+                      </Storyboard>
+                    </BeginStoryboard>
+                  </Trigger.EnterActions>
+                  <Trigger.ExitActions>
+                    <BeginStoryboard>
+                      <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="0" Duration="0:0:0.18"/>
+                      </Storyboard>
+                    </BeginStoryboard>
+                  </Trigger.ExitActions>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                  <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource Brush.Accent}"/>
+                  <Setter TargetName="Chrome" Property="BorderThickness" Value="2"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                  <Setter TargetName="Chrome" Property="Opacity" Value="0.85"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                  <Setter TargetName="Chrome" Property="Opacity" Value="0.5"/>
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+
+      <Style x:Key="Button.Ghost" TargetType="Button" BasedOn="{StaticResource Button.Glass}">
+        <Setter Property="Background" Value="Transparent"/>
+      </Style>
+
+      <!-- Botón principal: degradado con el color de la consola (lo fija MainWindow). -->
+      <Style x:Key="Button.Primary" TargetType="Button" BasedOn="{StaticResource Button.Glass}">
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Effect">
+          <Setter.Value>
+            <DropShadowEffect BlurRadius="28" ShadowDepth="8" Direction="270" Opacity="0.55" Color="{Binding Color, Source={StaticResource Brush.Primary}}"/>
+          </Setter.Value>
+        </Setter>
+      </Style>
+
+      <!-- Botón redondo de la barra superior y de las flechas del carrusel. -->
+      <Style x:Key="Button.Round" TargetType="Button">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Ink}"/>
+        <Setter Property="Background" Value="#73000000"/>
+        <Setter Property="Width" Value="40"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform"><Setter.Value><ScaleTransform/></Setter.Value></Setter>
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="Button">
+              <Border x:Name="Chrome" CornerRadius="999" Background="{TemplateBinding Background}"
+                      BorderBrush="{StaticResource Brush.Line}" BorderThickness="1">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                  <Setter TargetName="Chrome" Property="Background" Value="#24FFFFFF"/>
+                  <Trigger.EnterActions>
+                    <BeginStoryboard>
+                      <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.08" Duration="0:0:0.2"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.08" Duration="0:0:0.2"/>
+                      </Storyboard>
+                    </BeginStoryboard>
+                  </Trigger.EnterActions>
+                  <Trigger.ExitActions>
+                    <BeginStoryboard>
+                      <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.2"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.2"/>
+                      </Storyboard>
+                    </BeginStoryboard>
+                  </Trigger.ExitActions>
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>
